@@ -1,0 +1,198 @@
+openapi: 3.0.0
+info:
+  title: User and Rating API
+  version: 1.0.0
+  description: API for user management, login, chat, and ratings.
+
+servers:
+  - url: http://localhost:5000
+
+paths:
+  /signup:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: Suyash
+                email:
+                  type: string
+                  example: suyash@example.com
+                password:
+                  type: string
+                  example: Password123
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created successfully
+        '400':
+          description: Bad request
+
+  /login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: suyash@example.com
+                password:
+                  type: string
+                  example: Password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid credentials
+
+  /chat:
+    post:
+      summary: Chat with the bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Hello, how are you?
+      responses:
+        '200':
+          description: Bot response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    example: I'm good, thank you!
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Some error occurred
+
+  /submit_rating:
+    post:
+      summary: Submit a rating
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  example: 1
+                audio:
+                  type: integer
+                  example: 5
+                video:
+                  type: integer
+                  example: 4
+                content:
+                  type: integer
+                  example: 5
+                feedback:
+                  type: string
+                  example: Great session!
+      responses:
+        '201':
+          description: Rating submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating submitted successfully
+        '400':
+          description: Bad request
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          example: johndoe@example.com
+        password:
+          type: string
+          example: hashed_password
+
+    Rating:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        audio:
+          type: integer
+          example: 5
+        video:
+          type: integer
+          example: 4
+        content:
+          type: integer
+          example: 5
+        feedback:
+          type: string
+          example: Great session!
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-07-21T12:34:56Z
