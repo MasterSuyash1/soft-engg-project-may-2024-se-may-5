@@ -12,21 +12,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)  # Enable CORS for all routes
 
-<<<<<<< HEAD
-=======
 # Configure the Google Gemini API
 api_key = 'AIzaSyBFo_2jMDaxOEtrMxGh8er1NcWabofMAro'
 genai.configure(api_key=api_key)
 
->>>>>>> main
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
-<<<<<<< HEAD
-=======
 class Rating(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -38,7 +33,6 @@ class Rating(db.Model):
 
     user = db.relationship('User', backref=db.backref('ratings', lazy=True))    
 
->>>>>>> main
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
@@ -51,14 +45,12 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-<<<<<<< HEAD
     user = User.query.filter_by(email=data['email']).first()
     if user and check_password_hash(user.password, data['password']):
         return jsonify({'message': 'Login successful'}), 200
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-=======
     email = data.get('email')
     password = data.get('password')
     
@@ -168,7 +160,6 @@ def sentiment_analysis():
         print(f"Error: {e}")  # Log the error to the console
         return jsonify({'error': str(e)}), 500
 
->>>>>>> main
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
