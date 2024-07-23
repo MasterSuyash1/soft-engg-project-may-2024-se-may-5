@@ -10,9 +10,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-CORS(app)  # Enable CORS for all routes
-
-# Configure the Google Gemini API
+CORS(app) 
 api_key = 'AIzaSyBFo_2jMDaxOEtrMxGh8er1NcWabofMAro'
 genai.configure(api_key=api_key)
 
@@ -54,11 +52,9 @@ def login():
     email = data.get('email')
     password = data.get('password')
     
-    # Check for admin credentials
     if email == 'admin@gmail.com' and password == 'admin123':
         return jsonify({'message': 'Admin login successful', 'is_admin': True}), 200
-    
-    # Regular user login
+
     user = User.query.filter_by(email=email).first()
     if user and check_password_hash(user.password, password):
         return jsonify({'message': 'Login successful', 'is_admin': False}), 200
@@ -149,7 +145,7 @@ def sentiment_analysis():
                 max_output_tokens=1024,
                 prompt=prompt
             )
-            sentiment = response.result.strip().split('\n')[-1].strip()  # Extract sentiment
+            sentiment = response.result.strip().split('\n')[-1].strip()  
             sentiments.append({
                 'feedback': feedback,
                 'sentiment': sentiment
@@ -157,7 +153,7 @@ def sentiment_analysis():
 
         return jsonify(sentiments), 200
     except Exception as e:
-        print(f"Error: {e}")  # Log the error to the console
+        print(f"Error: {e}")  
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
