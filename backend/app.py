@@ -155,6 +155,16 @@ def sentiment_analysis():
         print(f"Error: {e}")  # Log the error to the console
         return jsonify({'error': str(e)}), 500
 
+# Add your code here Anuj,
+
+# Add your code here Asmita,
+
+# Add your code here Swetha,
+
+# Add your code here Yadvendra
+
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
