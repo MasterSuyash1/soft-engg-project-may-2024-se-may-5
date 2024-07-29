@@ -869,6 +869,10 @@ def get_weekly_performance():
     user_id = data['user_id']
     week_no = data['week_no']
 
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        return jsonify({"error": "User not Found!"}), 404
+
     week = Week.query.filter_by(week_no=week_no).first()
     if week is None:
         return jsonify({"error": "Week not Found!"}), 404
@@ -887,6 +891,9 @@ def get_weekly_performance():
     student_answers = StudentQuestion.query\
         .filter(StudentQuestion.question_id.in_([q.question_id for q in questions]))\
         .filter_by(user_id=user_id).all()
+
+    if not student_answers:
+        return jsonify({"error": "Student Didn't Submitted the Answers for this week"}), 404
 
     correct_attempted_ques = []
     incorrect_attempted_ques = []
@@ -923,7 +930,7 @@ def get_weekly_performance():
 
     obtained_score = (scores['aq_score'] + scores['pm_score'] + scores['pp_score'] +
                       scores['gp_score'] + scores['gq_score'])
-    overall_ai_score = obtained_score / total_marks
+    overall_ai_score = obtained_score / total_marks if total_marks != 0 else 0
 
     print(scores)
     print(overall_ai_score)
