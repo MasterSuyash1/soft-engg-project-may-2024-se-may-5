@@ -14,6 +14,7 @@ import google.generativeai as genai
 from urllib.parse import parse_qs, urlparse
 import json
 from sqlalchemy.types import TypeDecorator, TEXT
+from sqlalchemy.orm import relationship
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 
@@ -44,31 +45,65 @@ class JSONEncodedText(TypeDecorator):
         return value
 
 class User(db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
+    student_weekly_performances = relationship("StudentWeeklyPerformance", back_populates="user")
+    student_questions = relationship("StudentQuestion", back_populates="user")
+    ratings = relationship("Rating", back_populates="user")
+
+
 class Rating(db.Model):
+    __tablename__ = 'ratings'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    lesson_id = Column(Integer, ForeignKey('lessons.lesson_id'), nullable=False)
     audio = db.Column(db.Integer, nullable=False)
     video = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Integer, nullable=False)
     feedback = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship('User', backref=db.backref('ratings', lazy=True)) 
+    user = db.relationship('User', back_populates='ratings')
+    lesson = relationship("Lesson", back_populates="ratings")
+
+
+class Course(db.Model):
+    __tablename__ = 'courses'
+    id = db.Column(Integer, primary_key=True)
+    course_name = db.Column(String, nullable=False)
+    course_desc = db.Column(String)
+
+    lessons = db.relationship("Lesson", back_populates="course")
+    student_weekly_performances = db.relationship("StudentWeeklyPerformance", back_populates="course")
+
+
+class Week(db.Model):
+    __tablename__ = 'weeks'
+    id = db.Column(Integer, primary_key=True)
+    week_no = db.Column(Integer, nullable=False)
+    week_start_date = db.Column(DateTime, nullable=False)
+    week_end_date = db.Column(DateTime, nullable=False)
+
+    lessons = db.relationship("Lesson", back_populates="week")
+    student_weekly_performances = db.relationship("StudentWeeklyPerformance", back_populates="week")
+
 
 class Lesson(db.Model):
     __tablename__ = 'lessons'
-
     lesson_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
-    course_id = db.Column(db.Integer, nullable=False)
-    week_id = db.Column(db.Integer, nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    week_id = db.Column(db.Integer, db.ForeignKey('weeks.id'), nullable=False)
     lesson_topic = db.Column(db.Text, nullable=True)
     lecture_video_url = db.Column(db.Text, nullable=True)
-    questions = db.relationship('Question', backref='lesson', lazy=True)
+
+    course = relationship("Course", back_populates="lessons")
+    week = relationship("Week", back_populates="lessons")
+    questions = relationship("Question", back_populates="lesson", lazy=True)
+    ratings = relationship("Rating", back_populates="lesson")
 
     def __init__(self, course_id=None, week_id=None, lesson_topic=None, lecture_video_url=None):
         self.course_id = course_id
@@ -79,7 +114,6 @@ class Lesson(db.Model):
 
 class Question(db.Model):
     __tablename__ = 'questions'
-
     question_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.lesson_id'), nullable=False)
     question_type_aq_pm_pp_gp_gq = db.Column(db.Text, nullable=False)
@@ -91,12 +125,13 @@ class Question(db.Model):
     option_4 = db.Column(db.Text, nullable=False)
     correct_option = db.Column(JSONEncodedText, nullable=True)
     marks = db.Column(db.Integer, nullable=False)
+
+    lesson = db.relationship("Lesson", back_populates="questions")
     student_questions = db.relationship("StudentQuestion", back_populates="question")
-    
-    def __init__(self, lesson_id, question_type_aq_pm_pp_gp_gq=None, question=None, 
-                 question_type_mcq_msq=None, option_1=None, option_2=None, option_3=None, 
+
+    def __init__(self, lesson_id, question_type_aq_pm_pp_gp_gq=None, question=None,
+                 question_type_mcq_msq=None, option_1=None, option_2=None, option_3=None,
                  option_4=None, correct_option=None):
-        
         self.lesson_id = lesson_id
         self.question_type_aq_pm_pp_gp_gq = question_type_aq_pm_pp_gp_gq
         self.question = question
@@ -110,16 +145,40 @@ class Question(db.Model):
 
 
 class StudentQuestion(db.Model):
-    __tablename__ = 'student_question'
-
+    __tablename__ = 'student_questions'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('questions.question_id'), nullable=False)
-    is_correct = db.Column(db.Boolean,nullable=False)
-    #explained_yn = db.Column(db.Boolean)
-    programming_code = db.Column(db.String(255),nullable=True)
+    is_correct = db.Column(db.Boolean, nullable=False)
+    programming_code = db.Column(db.String(255), nullable=True)
 
-    
     question = db.relationship("Question", back_populates="student_questions")
+    user = db.relationship("User", back_populates="student_questions")
+
+    def __init__(self, user_id, question_id, is_correct, programming_code):
+        self.user_id = user_id
+        self.question_id = question_id
+        self.is_correct = is_correct
+        self.programming_code = programming_code
+
+
+class StudentWeeklyPerformance(db.Model):
+    __tablename__ = 'student_weekly_performances'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    week_id = db.Column(db.Integer, db.ForeignKey('weeks.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    aq_score = db.Column(db.Numeric)
+    pm_score = db.Column(db.Numeric)
+    pp_score = db.Column(db.Numeric)
+    gp_score = db.Column(db.Numeric)
+    gq_score = db.Column(db.Numeric)
+    overall_ai_score = db.Column(db.Numeric)
+    ai_report_pdf_url = db.Column(db.String)
+
+    user = relationship("User", back_populates="student_weekly_performances")
+    week = relationship("Week", back_populates="student_weekly_performances")
+    course = relationship("Course", back_populates="student_weekly_performances")
 
 
 @app.route('/signup', methods=['POST'])
@@ -686,8 +745,222 @@ def create_question():
     db.session.add(new_question)
     db.session.commit()
     return jsonify({'message': 'Question created successfully', 'question_id': new_question.question_id}), 200
+
+
 # Add your code here Yadvendra
 
+# =================== Student Weekly Performance Analysis ================================
+
+def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
+    required_response_schema = {
+        "title": "SWOT Analysis Schema",
+        "description": "Schema for representing a comprehensive SWOT analysis",
+        "type": "object",
+        "properties": {
+            "user_id": {
+                "type": "integer",
+                "description": "The ID of the user"
+            },
+            "week_no": {
+                "type": "integer",
+                "description": "The week number for the analysis"
+            },
+            "performance": {
+                "type": "object",
+                "description": "Performance metrics of the user",
+                "properties": {
+                    "aq_score": {
+                        "type": "integer",
+                        "description": "Score in Assessment Questions"
+                    },
+                    "pm_score": {
+                        "type": "integer",
+                        "description": "Score in Performance Questions"
+                    },
+                    "pp_score": {
+                        "type": "integer",
+                        "description": "Score in Programming Problems"
+                    },
+                    "gp_score": {
+                        "type": "integer",
+                        "description": "Score in” General Programming Problems"
+                    },
+                    "gq_score": {
+                        "type": "integer",
+                        "description": "Score in General Questions"
+                    },
+                    "overall_ai_score": {
+                        "type": "number",
+                        "description": "Overall AI calculated score"
+                    }
+                },
+                "required": ["aq_score", "pm_score", "pp_score", "gp_score", "gq_score", "overall_ai_score"]
+            },
+            "swot_analysis": {
+                "type": "object",
+                "description": "SWOT analysis generated by AI",
+                "properties": {
+                    "strengths": {
+                        "type": "array",
+                        "description": "List of strengths identified in the SWOT analysis",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "weaknesses": {
+                        "type": "array",
+                        "description": "List of weaknesses identified in the SWOT analysis",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "opportunities": {
+                        "type": "array",
+                        "description": "List of opportunities identified in the SWOT analysis",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "threats": {
+                        "type": "array",
+                        "description": "List of threats identified in the SWOT analysis",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["strengths", "weaknesses", "opportunities", "threats"]
+            }
+        },
+        "required": ["user_id", "week_no", "performance", "swot_analysis"]
+    }
+
+    prompt = f"""
+        Analyze the following student performance data and provide a SWOT Analysis.
+        For Topics: {", ".join(lesson_topics)}\n
+
+        **Performance Data:**
+        AQ Score: {student_performance['aq_score']}
+        PM Score: {student_performance['pm_score']}
+        PP Score: {student_performance['pp_score']}
+        GP Score: {student_performance['gp_score']}
+        GQ Score: {student_performance['gq_score']}
+        Overall AI Score: {student_performance['overall_ai_score']}
+
+        **Correct Attempted Questions:**
+        {';'.join(correct_attempts)}
+
+        **Incorrect Attempted Questions:**
+        {"; ".join(incorrect_attempts)}
+        
+        Follow the JSON schema.<JSONSchema>{json.dumps(required_response_schema)}</JSONSchema>
+        
+        Don't Give Anything Else other than this.
+        """
+
+    response = model.generate_content(prompt)
+    response_text = response.candidates[0].content.parts[0].text
+    return response_text
+
+
+@app.route("/weekly_performance_analysis", methods=['POST'])
+def get_weekly_performance():
+    data = request.json
+    user_id = data['user_id']
+    week_no = data['week_no']
+
+    week = Week.query.filter_by(week_no=week_no).first()
+    if week is None:
+        return jsonify({"error": "Week not Found!"}), 404
+
+    week_id = week.id
+
+    lessons = Lesson.query.filter_by(week_id=week_id).all()
+    course = Course.query.filter_by(id=lessons[0].course.id).first()
+    lesson_topics = [lesson.lesson_topic for lesson in lessons]
+
+    questions = Question.query.filter(Question.lesson_id.in_([lesson.lesson_id for lesson in lessons])).all()
+
+    if not questions:
+        return jsonify({"error": "No Questions found for this week"}), 404
+
+    student_answers = StudentQuestion.query\
+        .filter(StudentQuestion.question_id.in_([q.question_id for q in questions]))\
+        .filter_by(user_id=user_id).all()
+
+    correct_attempted_ques = []
+    incorrect_attempted_ques = []
+
+    total_questions = len(questions)
+    scores = {
+        'aq_score': 0,
+        'pm_score': 0,
+        'pp_score': 0,
+        'gp_score': 0,
+        'gq_score': 0,
+    }
+    total_marks = 0
+
+    for answer in student_answers:
+        question = Question.query.filter_by(question_id=answer.question_id).first()
+        if question:
+            if answer.is_correct:
+                if question.question_type_aq_pm_pp_gp_gq == "AQ":
+                    scores['aq_score'] += question.marks
+                elif question.question_type_aq_pm_pp_gp_gq == "PM":
+                    scores['pm_score'] += question.marks
+                elif question.question_type_aq_pm_pp_gp_gq == "PP":
+                    scores['pp_score'] += question.marks
+                elif question.question_type_aq_pm_pp_gp_gq == "GP":
+                    scores['gp_score'] += question.marks
+                elif question.question_type_aq_pm_pp_gp_gq == "GQ":
+                    scores['gq_score'] += question.marks
+
+                correct_attempted_ques.append(question.question)
+            else:
+                incorrect_attempted_ques.append(question.question)
+            total_marks += question.marks
+
+    obtained_score = (scores['aq_score'] + scores['pm_score'] + scores['pp_score'] +
+                      scores['gp_score'] + scores['gq_score'])
+    overall_ai_score = obtained_score / total_marks
+
+    print(scores)
+    print(overall_ai_score)
+    swot_analysis_json = generate_swot_analysis({
+        'aq_score': scores['aq_score'],
+        'pm_score': scores['pm_score'],
+        'pp_score': scores['pp_score'],
+        'gp_score': scores['gp_score'],
+        'gq_score': scores['gq_score'],
+        'overall_ai_score': overall_ai_score
+    }, lesson_topics, correct_attempted_ques, incorrect_attempted_ques)
+    print(swot_analysis_json)
+    swot_analysis = json.loads(swot_analysis_json)
+    performance = StudentWeeklyPerformance(
+        user_id=user_id,
+        week_id=week_id,
+        course_id=course.id,
+        aq_score=scores['aq_score'],
+        pm_score=scores['pm_score'],
+        pp_score=scores['pp_score'],
+        gp_score=scores['gp_score'],
+        gq_score=scores['gq_score'],
+        overall_ai_score=overall_ai_score,
+        ai_report_pdf_url=json.dumps(swot_analysis['swot_analysis'])
+    )
+
+    db.session.add(performance)
+    db.session.commit()
+
+    return swot_analysis, 200
+
+# ============================ Feedback Sentiment Analysis ==========================
+
+
+
+
+# =========================== Contextual ChatBot API ==============================
 
 
 if __name__ == '__main__':
