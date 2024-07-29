@@ -20,7 +20,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'backend/instance/users.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir,'backend/instance/users.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)  # Enable CORS for all routes
@@ -52,7 +52,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
     student_weekly_performances = relationship("StudentWeeklyPerformance", back_populates="user")
-    student_questions = relationship("StudentQuestion", back_populates="user")
+    #student_questions = relationship("StudentQuestion", back_populates="user")
     ratings = relationship("Rating", back_populates="user")
 
 
@@ -60,7 +60,7 @@ class Rating(db.Model):
     __tablename__ = 'ratings'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    lesson_id = Column(Integer, ForeignKey('lessons.lesson_id'), nullable=False)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.lesson_id'), nullable=False)
     audio = db.Column(db.Integer, nullable=False)
     video = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Integer, nullable=False)
@@ -73,9 +73,9 @@ class Rating(db.Model):
 
 class Course(db.Model):
     __tablename__ = 'courses'
-    id = db.Column(Integer, primary_key=True)
-    course_name = db.Column(String, nullable=False)
-    course_desc = db.Column(String)
+    id = db.Column(db.Integer, primary_key=True)
+    course_name = db.Column(db.String, nullable=False)
+    course_desc = db.Column(db.String)
 
     lessons = db.relationship("Lesson", back_populates="course")
     student_weekly_performances = db.relationship("StudentWeeklyPerformance", back_populates="course")
@@ -83,10 +83,10 @@ class Course(db.Model):
 
 class Week(db.Model):
     __tablename__ = 'weeks'
-    id = db.Column(Integer, primary_key=True)
-    week_no = db.Column(Integer, nullable=False)
-    week_start_date = db.Column(DateTime, nullable=False)
-    week_end_date = db.Column(DateTime, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    week_no = db.Column(db.Integer, nullable=False)
+    week_start_date = db.Column(db.DateTime, nullable=False)
+    week_end_date = db.Column(db.DateTime, nullable=False)
 
     lessons = db.relationship("Lesson", back_populates="week")
     student_weekly_performances = db.relationship("StudentWeeklyPerformance", back_populates="week")
@@ -147,19 +147,19 @@ class Question(db.Model):
 class StudentQuestion(db.Model):
     __tablename__ = 'student_questions'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     question_id = db.Column(db.Integer, db.ForeignKey('questions.question_id'), nullable=False)
     is_correct = db.Column(db.Boolean, nullable=False)
     programming_code = db.Column(db.String(255), nullable=True)
 
     question = db.relationship("Question", back_populates="student_questions")
-    user = db.relationship("User", back_populates="student_questions")
+    #user = db.relationship("User", back_populates="student_questions")
 
-    def __init__(self, user_id, question_id, is_correct, programming_code):
-        self.user_id = user_id
+    def __init__(self, question_id, is_correct):
+        #self.user_id = user_id
         self.question_id = question_id
         self.is_correct = is_correct
-        self.programming_code = programming_code
+        #self.programming_code = programming_code
 
 
 class StudentWeeklyPerformance(db.Model):
@@ -305,11 +305,7 @@ def sentiment_analysis():
 # Add your code here Anuj,
 
 # Add your code here Asmita,
-#______________________________________________Swetha's Code begins______________________________________________________________
-    # Create Lesson instances
 
-#______________________________________________Swetha's Code begins______________________________________________________________
-    # Create Lesson instances
 
 def get_explanation(question, correct_answer):
     model = genai.GenerativeModel('gemini-pro')
@@ -619,9 +615,15 @@ def quiz(week_id):
                 'is_correct': is_correct,
                 'explanation': ""
             }
-            student_response = StudentQuestion(question_id=question['question_id'],is_correct=is_correct)
-            db.session.add(student_response)
-        
+            existing_response = StudentQuestion.query.filter_by(question_id=question['question_id']).first()
+            if existing_response:
+                # Update the existing response
+                existing_response.is_correct = is_correct
+            else:
+                # Create a new response
+                student_response = StudentQuestion(question_id=question['question_id'], is_correct=is_correct)
+                db.session.add(student_response)
+           
             try:
                 if not is_correct:
                     explanation = get_explanation(question['question'], correct_answer)
@@ -752,6 +754,7 @@ def create_question():
 # =================== Student Weekly Performance Analysis ================================
 
 def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
+    model = genai.GenerativeModel('gemini-pro')
     required_response_schema = {
         "title": "SWOT Analysis Schema",
         "description": "Schema for representing a comprehensive SWOT analysis",
@@ -869,10 +872,6 @@ def get_weekly_performance():
     user_id = data['user_id']
     week_no = data['week_no']
 
-    user = User.query.filter_by(id=user_id).first()
-    if user is None:
-        return jsonify({"error": "User not Found!"}), 404
-
     week = Week.query.filter_by(week_no=week_no).first()
     if week is None:
         return jsonify({"error": "Week not Found!"}), 404
@@ -891,9 +890,6 @@ def get_weekly_performance():
     student_answers = StudentQuestion.query\
         .filter(StudentQuestion.question_id.in_([q.question_id for q in questions]))\
         .filter_by(user_id=user_id).all()
-
-    if not student_answers:
-        return jsonify({"error": "Student Didn't Submitted the Answers for this week"}), 404
 
     correct_attempted_ques = []
     incorrect_attempted_ques = []
@@ -930,7 +926,7 @@ def get_weekly_performance():
 
     obtained_score = (scores['aq_score'] + scores['pm_score'] + scores['pp_score'] +
                       scores['gp_score'] + scores['gq_score'])
-    overall_ai_score = obtained_score / total_marks if total_marks != 0 else 0
+    overall_ai_score = obtained_score / total_marks
 
     print(scores)
     print(overall_ai_score)
