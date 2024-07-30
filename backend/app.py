@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import google.generativeai as genai
+from google.generativeai import GenerationConfig
 from datetime import datetime
 import os
 import re
