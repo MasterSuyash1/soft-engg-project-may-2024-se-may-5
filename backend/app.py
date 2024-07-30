@@ -155,7 +155,7 @@ class StudentQuestion(db.Model):
     question = db.relationship("Question", back_populates="student_questions")
     user = db.relationship("User", back_populates="student_questions")
 
-    def __init__(self, question_id, is_correct):
+    def __init__(self, user_id,question_id, is_correct):
         self.user_id = user_id
         self.question_id = question_id
         self.is_correct = is_correct
@@ -337,6 +337,7 @@ def activity_quiz(lesson_id):
 
     if request.method == 'POST':
         data = request.get_json()
+        user_id = data.get('user_id')
         user_answers = data.get('answers', {})
         results = []
         total_score = 0
@@ -359,8 +360,17 @@ def activity_quiz(lesson_id):
             except Exception as e:
                 return jsonify({'error': f'Error generating activity question"s explanation: {e}'}),400
 
-
+            existing_response = StudentQuestion.query.filter_by(user_id=user_id,question_id=question['question_id']).first()
+            if existing_response:
+                # Update the existing response
+                existing_response.is_correct = is_correct
+            else:
+                # Create a new response
+                student_response = StudentQuestion(user_id=user_id,question_id=question['question_id'], is_correct=is_correct)
+                db.session.add(student_response)
+                db.session.commit()
             results.append({
+                'user_id' : 1,
                 'question': question['question'],
                 'correct_answer': question['correct'],
                 'user_answer': list(user_answer) if isinstance(user_answer, set) else user_answer,
@@ -594,6 +604,7 @@ def quiz(week_id):
 
     if request.method == 'POST':
         data = request.get_json()
+        user_id = data.get('user_id')
         user_answers = data.get('answers', {})
         results = []
         total_score = 0
@@ -615,14 +626,15 @@ def quiz(week_id):
                 'is_correct': is_correct,
                 'explanation': ""
             }
-            existing_response = StudentQuestion.query.filter_by(question_id=question['question_id']).first()
+            existing_response = StudentQuestion.query.filter_by(user_id =user_id,question_id=question['question_id']).first()
             if existing_response:
                 # Update the existing response
                 existing_response.is_correct = is_correct
             else:
                 # Create a new response
-                student_response = StudentQuestion(question_id=question['question_id'], is_correct=is_correct)
+                student_response = StudentQuestion(user_id=user_id,question_id=question['question_id'], is_correct=is_correct)
                 db.session.add(student_response)
+                db.session.commit()
            
             try:
                 if not is_correct:
@@ -633,6 +645,7 @@ def quiz(week_id):
                 return jsonify({'error': f'Error generating graded question"s explanation: {e}'}),400
         db.session.commit()
         return jsonify({
+            'user_id' : user_id,
             'results': results,
             'score': total_score,
             'max_score': max_score
@@ -640,6 +653,8 @@ def quiz(week_id):
 
     return jsonify({'quiz_data': list(enumerate(quiz_data))})
 
+
+        
 #_______________________AI Transcriptor-Notes__________
 def extract_video_id(video_url):
     query = urlparse(video_url).query
