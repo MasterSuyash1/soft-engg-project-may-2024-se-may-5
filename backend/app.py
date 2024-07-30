@@ -155,11 +155,11 @@ class StudentQuestion(db.Model):
     question = db.relationship("Question", back_populates="student_questions")
     user = db.relationship("User", back_populates="student_questions")
 
-    def __init__(self, user_id,question_id, is_correct):
+    def __init__(self, user_id, question_id, is_correct, programming_code):
         self.user_id = user_id
         self.question_id = question_id
         self.is_correct = is_correct
-        #self.programming_code = programming_code
+        self.programming_code = programming_code
 
 
 class StudentWeeklyPerformance(db.Model):
@@ -769,7 +769,8 @@ def create_question():
 # =================== Student Weekly Performance Analysis ================================
 
 def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     required_response_schema = {
         "title": "SWOT Analysis Schema",
         "description": "Schema for representing a comprehensive SWOT analysis",
@@ -881,7 +882,7 @@ def generate_swot_analysis(student_performance, lesson_topics, correct_attempts,
     return response_text
 
 
-@app.route("/weekly_performance_analysis", methods=['POST'])
+@app.route("/api/weekly_performance_analysis", methods=['POST'])
 def get_weekly_performance():
     data = request.json
     user_id = data['user_id']
@@ -980,6 +981,8 @@ def get_weekly_performance():
 
 
 def generate_feedback_summary(lessons_feedbacks):
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     req_response_schema = {
         "title": "Lecture Feedback Summary Schema",
         "description": "Schema for AI-generated feedback summaries for lectures.",
@@ -1043,7 +1046,7 @@ def generate_feedback_summary(lessons_feedbacks):
     return response_text
 
 
-@app.route("/sentiment_analysis", methods=['POST'])
+@app.route("/api/sentiment_analysis", methods=['POST'])
 def sentiment_analysis():
     ratings = Rating.query.all()
     lessons_feedback = {}
@@ -1086,7 +1089,7 @@ def init_session():
         "session_id": session_id}), 200
 
 
-@app.route("/chat_ai", methods=['POST'])
+@app.route("/api/chat", methods=['POST'])
 def chat_ai():
     session_id = request.json.get("session_id")
     user_message = request.json.get("message")
