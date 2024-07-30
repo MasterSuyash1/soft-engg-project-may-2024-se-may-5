@@ -961,9 +961,157 @@ def get_weekly_performance():
 # ============================ Feedback Sentiment Analysis ==========================
 
 
+def generate_feedback_summary(lessons_feedbacks):
+    req_response_schema = {
+        "title": "Lecture Feedback Summary Schema",
+        "description": "Schema for AI-generated feedback summaries for lectures.",
+        "type": "object",
+        "properties": {
+            "lecture_feedback_summaries": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "lesson_id": {
+                            "type": "string",
+                            "description": "Unique identifier for the lecture."
+                        },
+                        "sentiment": {
+                            "type": "number",
+                            "description": "Sentiment score for the lecture feedback, ranging from 0 to 1."
+                        },
+                        "feedback_summary": {
+                            "type": "string",
+                            "description": "Summarized feedback provided by the AI for the lecture."
+                        },
+                        "suggestions": {
+                            "type": "string",
+                            "description": "AI-generated suggestions for improvement based on feedback."
+                        }
+                    },
+                    "required": ["lesson_id", "sentiment", "average_sentiment", "feedback_summary"]
+                }
+            }
+        },
+        "required": ["lecture_feedback_summaries"],
+    }
+
+    prompt = f"""
+            You are an AI language model tasked with analyzing student feedback for online lectures. 
+            The feedback includes ratings for audio, video, and content quality, along with written comments. 
+            Based on this data, you will provide a sentiment analysis, summarize the feedback, and 
+            suggest improvements for each lecture.
+
+            Here is the feedback data:"""
+
+    for lesson_id, feedback_list in lessons_feedbacks.items():
+        prompt += f"\n1. **Lecture ID**: {lesson_id}\n   - **Feedbacks**:\n"
+        for feedback in feedback_list:
+            prompt += f"     - \"{feedback}\"\n"
+
+    prompt += f"""**Instructions**: 
+    1. For each lecture, analyze the feedback comments and ratings. Provide an  sentiment score between 0 and 1
+    2. Summarize the key points from the feedback.
+    3. Provide suggestions for improvement based on the feedback.
+    
+    Here is the output format:
+    Follow the JSON schema.<JSONSchema>{json.dumps(req_response_schema)}</JSONSchema>
+    """
+
+    # print(prompt)
+
+    response = model.generate_content(prompt)
+    response_text = response.candidates[0].content.parts[0].text
+    return response_text
+
+
+@app.route("/sentiment_analysis", methods=['POST'])
+def sentiment_analysis():
+    ratings = Rating.query.all()
+    lessons_feedback = {}
+    # print(ratings)
+
+    for rating in ratings:
+        lesson_id = rating.lesson_id
+        feedback = rating.feedback
+        # print(lesson_id)
+
+        if lesson_id not in lessons_feedback:
+            lessons_feedback[lesson_id] = []
+
+        if feedback:
+            lessons_feedback[lesson_id].append(feedback)
+
+    analysis_results = []
+
+    # print(lessons_feedback)
+
+    f_summary = generate_feedback_summary(lessons_feedback)
+    feedback_summary = json.loads(f_summary)
+    # print(feedback_summary)
+
+    return feedback_summary, 200
 
 
 # =========================== Contextual ChatBot API ==============================
+
+conversations = {}
+
+
+@app.route("/init", methods=['POST'])
+def init_session():
+    session_id = str(len(conversations) + 1)
+    conversations[session_id] = []
+    print(f"Total sessions: {len(conversations)}")
+    return jsonify({
+        "message": "Session Initialized",
+        "session_id": session_id}), 200
+
+
+@app.route("/chat_ai", methods=['POST'])
+def chat_ai():
+    session_id = request.json.get("session_id")
+    user_message = request.json.get("message")
+
+    generation_config = GenerationConfig(
+        temperature=0.1,
+        top_p=0.95,
+        top_k=64,
+        max_output_tokens=500,
+        response_mime_type="text/plain"
+    )
+
+    chat_model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        generation_config=generation_config,
+        system_instruction="""
+        You should behave like a mentor or tutor or teacher for python programming.
+        You are also helpful assistant in solving programming question. 
+        Explain terms that are understandable.
+        Use real world examples and add humor to make conversation interesting and engaging.
+        Ask questions, so that you can better understand the student.
+        """
+    )
+
+    if session_id not in conversations:
+        conversations[session_id] = []
+
+    conversation_history = conversations[session_id]
+
+    chat_session = chat_model.start_chat(
+        history=conversation_history
+    )
+
+    response = chat_session.send_message(user_message)
+
+    model_response = response.text
+    # print(model_response)
+
+    conversation_history.append({"role": "user", "parts": [user_message]})
+    conversation_history.append({"role": "model", "parts": [model_response]})
+    conversations[session_id] = conversation_history
+
+    return jsonify({"response": model_response}), 200
 
 
 if __name__ == '__main__':
