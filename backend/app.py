@@ -52,7 +52,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
     student_weekly_performances = relationship("StudentWeeklyPerformance", back_populates="user")
-    #student_questions = relationship("StudentQuestion", back_populates="user")
+    student_questions = relationship("StudentQuestion", back_populates="user")
     ratings = relationship("Rating", back_populates="user")
 
 
@@ -153,10 +153,10 @@ class StudentQuestion(db.Model):
     programming_code = db.Column(db.String(255), nullable=True)
 
     question = db.relationship("Question", back_populates="student_questions")
-    #user = db.relationship("User", back_populates="student_questions")
+    user = db.relationship("User", back_populates="student_questions")
 
     def __init__(self, question_id, is_correct):
-        #self.user_id = user_id
+        self.user_id = user_id
         self.question_id = question_id
         self.is_correct = is_correct
         #self.programming_code = programming_code
@@ -891,6 +891,9 @@ def get_weekly_performance():
         .filter(StudentQuestion.question_id.in_([q.question_id for q in questions]))\
         .filter_by(user_id=user_id).all()
 
+    if not student_answers:
+        return jsonify({"error": "Student Didn't Submitted the Answers for this week"}), 404
+
     correct_attempted_ques = []
     incorrect_attempted_ques = []
 
@@ -926,10 +929,10 @@ def get_weekly_performance():
 
     obtained_score = (scores['aq_score'] + scores['pm_score'] + scores['pp_score'] +
                       scores['gp_score'] + scores['gq_score'])
-    overall_ai_score = obtained_score / total_marks
+    overall_ai_score = obtained_score / total_marks if total_marks != 0 else 0
 
-    print(scores)
-    print(overall_ai_score)
+    # print(scores)
+    # print(overall_ai_score)
     swot_analysis_json = generate_swot_analysis({
         'aq_score': scores['aq_score'],
         'pm_score': scores['pm_score'],
@@ -938,7 +941,7 @@ def get_weekly_performance():
         'gq_score': scores['gq_score'],
         'overall_ai_score': overall_ai_score
     }, lesson_topics, correct_attempted_ques, incorrect_attempted_ques)
-    print(swot_analysis_json)
+    # print(swot_analysis_json)
     swot_analysis = json.loads(swot_analysis_json)
     performance = StudentWeeklyPerformance(
         user_id=user_id,
