@@ -271,36 +271,36 @@ def delete_user(user_id):
         return jsonify({'message': 'User not found'}), 404
 
 
-@app.route('/api/sentiment_analysis', methods=['GET'])
-def sentiment_analysis():
-    try:
-        ratings = Rating.query.all()
-        feedback_list = [rating.feedback for rating in ratings if rating.feedback]
+# @app.route('/api/sentiment_analysis', methods=['GET'])
+# def sentiment_analysis():
+#     try:
+#         ratings = Rating.query.all()
+#         feedback_list = [rating.feedback for rating in ratings if rating.feedback]
         
-        sentiments = []
-        for feedback in feedback_list:
-            prompt = f"""Tell me whether the following sentence's sentiment is positive or negative or something in between.
-            Sentence {feedback}
-            Sentiment"""
-            response = genai.generate_text(
-                model='models/text-bison-001',
-                temperature=0.5,
-                candidate_count=1,
-                top_k=40,
-                top_p=0.95,
-                max_output_tokens=1024,
-                prompt=prompt
-            )
-            sentiment = response.result.strip().split('\n')[-1].strip()  # Extract sentiment
-            sentiments.append({
-                'feedback': feedback,
-                'sentiment': sentiment
-            })
+#         sentiments = []
+#         for feedback in feedback_list:
+#             prompt = f"""Tell me whether the following sentence's sentiment is positive or negative or something in between.
+#             Sentence {feedback}
+#             Sentiment"""
+#             response = genai.generate_text(
+#                 model='models/text-bison-001',
+#                 temperature=0.5,
+#                 candidate_count=1,
+#                 top_k=40,
+#                 top_p=0.95,
+#                 max_output_tokens=1024,
+#                 prompt=prompt
+#             )
+#             sentiment = response.result.strip().split('\n')[-1].strip()  # Extract sentiment
+#             sentiments.append({
+#                 'feedback': feedback,
+#                 'sentiment': sentiment
+#             })
 
-        return jsonify(sentiments), 200
-    except Exception as e:
-        print(f"Error: {e}")  # Log the error to the console
-        return jsonify({'error': str(e)}), 500
+#         return jsonify(sentiments), 200
+#     except Exception as e:
+#         print(f"Error: {e}")  # Log the error to the console
+#         return jsonify({'error': str(e)}), 500
 
 # Add your code here Anuj,
 
