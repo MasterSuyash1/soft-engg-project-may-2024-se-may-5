@@ -207,18 +207,18 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.get_json()
-    user_message = data.get('message')
-    try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(user_message)
-        bot_response = response.text
-        formatted_response = ' '.join(bot_response.split())
-        return jsonify({'response': formatted_response}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# @app.route('/chat', methods=['POST'])
+# def chat():
+#     data = request.get_json()
+#     user_message = data.get('message')
+#     try:
+#         model = genai.GenerativeModel('gemini-1.5-flash')
+#         response = model.generate_content(user_message)
+#         bot_response = response.text
+#         formatted_response = ' '.join(bot_response.split())
+#         return jsonify({'response': formatted_response}), 200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 
 @app.route('/submit_rating', methods=['POST'])
 def submit_rating():
