@@ -1,4 +1,7 @@
-# This is the testing comment 
+# ----------------------------------------------------------------------- #
+# DO NOT TRY TO CHANGE THE CODE OTHERWISE YOU WILL FACE CONSEQUENCES
+# ----------------------------------------------------------------------- #
+# This is the final version of app.py and api testing is based on this.
 from sqlalchemy import Column, Integer, String, ForeignKey
 from flask import Flask, request, jsonify,session
 from flask_sqlalchemy import SQLAlchemy
