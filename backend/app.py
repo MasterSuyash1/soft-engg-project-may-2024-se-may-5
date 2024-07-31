@@ -888,7 +888,7 @@ def generate_swot_analysis(student_performance, lesson_topics, correct_attempts,
     return response_text
 
 
-@app.route("/weekly_performance_analysis", methods=['POST'])
+@app.route("/api/weekly_performance_analysis", methods=['POST'])
 def get_weekly_performance():
     data = request.json
     user_id = data['user_id']
