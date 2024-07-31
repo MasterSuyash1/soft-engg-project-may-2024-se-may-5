@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import google.generativeai as genai
-from google.generativeai import GenerationConfig
 from datetime import datetime
 import os
 import re
@@ -17,11 +16,14 @@ import json
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.orm import relationship
 from tenacity import retry, stop_after_attempt, wait_fixed
+from google.generativeai import GenerationConfig
+import subprocess
+import logging
 
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir,'backend/instance/users.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir,'backend/instance/users (1).db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)  # Enable CORS for all routes
@@ -30,6 +32,13 @@ Misaka(app)
 
 api_key = 'AIzaSyC6www5ebwMC2Mpvb0WnZCzgPwzxMO4j-g'
 genai.configure(api_key=api_key)
+
+app.secret_key = 'your_secret_key'
+
+model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
+
+model2 = genai.GenerativeModel(model_name="gemini-1.5-flash", tools = "code_execution")
 
 class JSONEncodedText(TypeDecorator):
     """Enables JSON storage by encoding and decoding on the fly."""
@@ -61,10 +70,10 @@ class Rating(db.Model):
     __tablename__ = 'ratings'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    lesson_id = Column(Integer, ForeignKey('lessons.lesson_id'), nullable=False)
-    audio = db.Column(db.Integer, nullable=True)
-    video = db.Column(db.Integer, nullable=True)
-    content = db.Column(db.Integer, nullable=True)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.lesson_id'), nullable=False)
+    audio = db.Column(db.Integer, nullable=False)
+    video = db.Column(db.Integer, nullable=False)
+    content = db.Column(db.Integer, nullable=False)
     feedback = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -74,9 +83,9 @@ class Rating(db.Model):
 
 class Course(db.Model):
     __tablename__ = 'courses'
-    id = db.Column(Integer, primary_key=True)
-    course_name = db.Column(String, nullable=False)
-    course_desc = db.Column(String)
+    id = db.Column(db.Integer, primary_key=True)
+    course_name = db.Column(db.String, nullable=False)
+    course_desc = db.Column(db.String)
 
     lessons = db.relationship("Lesson", back_populates="course")
     student_weekly_performances = db.relationship("StudentWeeklyPerformance", back_populates="course")
@@ -119,21 +128,20 @@ class Question(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.lesson_id'), nullable=False)
     question_type_aq_pm_pp_gp_gq = db.Column(db.Text, nullable=False)
     question = db.Column(db.Text, nullable=False)
-    question_type_mcq_msq = db.Column(db.Text, nullable=True)
-    option_1 = db.Column(db.Text, nullable=True)
-    option_2 = db.Column(db.Text, nullable=True)
-    option_3 = db.Column(db.Text, nullable=True)
-    option_4 = db.Column(db.Text, nullable=True)
+    question_type_mcq_msq = db.Column(db.Text, nullable=False)
+    option_1 = db.Column(db.Text, nullable=False)
+    option_2 = db.Column(db.Text, nullable=False)
+    option_3 = db.Column(db.Text, nullable=False)
+    option_4 = db.Column(db.Text, nullable=False)
     correct_option = db.Column(JSONEncodedText, nullable=True)
-    efficient_code = db.Column(db.Text, nullable=True)
-    marks = db.Column(db.Integer, nullable=True)
+    marks = db.Column(db.Integer, nullable=False)
 
     lesson = db.relationship("Lesson", back_populates="questions")
     student_questions = db.relationship("StudentQuestion", back_populates="question")
 
     def __init__(self, lesson_id, question_type_aq_pm_pp_gp_gq=None, question=None,
                  question_type_mcq_msq=None, option_1=None, option_2=None, option_3=None,
-                 option_4=None, correct_option=None, efficient_code=None):
+                 option_4=None, correct_option=None):
         self.lesson_id = lesson_id
         self.question_type_aq_pm_pp_gp_gq = question_type_aq_pm_pp_gp_gq
         self.question = question
@@ -143,7 +151,6 @@ class Question(db.Model):
         self.option_3 = option_3
         self.option_4 = option_4
         self.correct_option = correct_option
-        self.efficient_code=efficient_code
         self.marks = 3 if self.question_type_mcq_msq == 'MCQ' else 5
 
 
@@ -170,7 +177,7 @@ class StudentWeeklyPerformance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     week_id = db.Column(db.Integer, db.ForeignKey('weeks.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
     aq_score = db.Column(db.Numeric)
     pm_score = db.Column(db.Numeric)
     pp_score = db.Column(db.Numeric)
@@ -231,8 +238,9 @@ def submit_rating():
     video = data.get('video')
     content = data.get('content')
     feedback = data.get('feedback')
+    lesson_id = data.get('lesson_id')
 
-    new_rating = Rating(user_id=user_id, audio=audio, video=video, content=content, feedback=feedback)
+    new_rating = Rating(user_id=user_id,lesson_id = lesson_id, audio=audio, video=video, content=content, feedback=feedback)
     db.session.add(new_rating)
     db.session.commit()
 
@@ -369,11 +377,11 @@ def activity_quiz(lesson_id):
                 existing_response.is_correct = is_correct
             else:
                 # Create a new response
-                student_response = StudentQuestion(user_id=user_id,question_id=question['question_id'], is_correct=is_correct)
+                student_response = StudentQuestion(user_id=user_id,question_id=question['question_id'], is_correct=is_correct,programming_code=None)
                 db.session.add(student_response)
                 db.session.commit()
+                
             results.append({
-                'user_id' : 1,
                 'question': question['question'],
                 'correct_answer': question['correct'],
                 'user_answer': list(user_answer) if isinstance(user_answer, set) else user_answer,
@@ -629,16 +637,16 @@ def quiz(week_id):
                 'is_correct': is_correct,
                 'explanation': ""
             }
-            existing_response = StudentQuestion.query.filter_by(user_id =user_id,question_id=question['question_id']).first()
+
+            existing_response = StudentQuestion.query.filter_by(user_id = user_id, question_id=question['question_id']).first()
             if existing_response:
                 # Update the existing response
                 existing_response.is_correct = is_correct
             else:
                 # Create a new response
-                student_response = StudentQuestion(user_id=user_id,question_id=question['question_id'], is_correct=is_correct)
+                student_response = StudentQuestion(user_id = user_id, question_id=question['question_id'], is_correct=is_correct,programming_code=None)
                 db.session.add(student_response)
                 db.session.commit()
-           
             try:
                 if not is_correct:
                     explanation = get_explanation(question['question'], correct_answer)
@@ -648,7 +656,6 @@ def quiz(week_id):
                 return jsonify({'error': f'Error generating graded question"s explanation: {e}'}),400
         db.session.commit()
         return jsonify({
-            'user_id' : user_id,
             'results': results,
             'score': total_score,
             'max_score': max_score
@@ -656,8 +663,6 @@ def quiz(week_id):
 
     return jsonify({'quiz_data': list(enumerate(quiz_data))})
 
-
-        
 #_______________________AI Transcriptor-Notes__________
 def extract_video_id(video_url):
     query = urlparse(video_url).query
@@ -772,8 +777,6 @@ def create_question():
 # =================== Student Weekly Performance Analysis ================================
 
 def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
-                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     required_response_schema = {
         "title": "SWOT Analysis Schema",
         "description": "Schema for representing a comprehensive SWOT analysis",
@@ -885,20 +888,21 @@ def generate_swot_analysis(student_performance, lesson_topics, correct_attempts,
     return response_text
 
 
-@app.route("/api/weekly_performance_analysis", methods=['POST'])
+@app.route("/weekly_performance_analysis", methods=['POST'])
 def get_weekly_performance():
     data = request.json
     user_id = data['user_id']
     week_no = data['week_no']
+    
 
-    week = Week.query.filter_by(week_no=week_no).first()
-    if week is None:
-        return jsonify({"error": "Week not Found!"}), 404
+    # week = Week.query.filter_by(week_no=week_no).first()
+    # if week is None:
+    #     return jsonify({"error": "Week not Found!"}), 404
 
-    week_id = week.id
+    # week_id = week.id
 
-    lessons = Lesson.query.filter_by(week_id=week_id).all()
-    course = Course.query.filter_by(id=lessons[0].course.id).first()
+    lessons = Lesson.query.filter_by(week_id=week_no).all()
+    #course = Course.query.filter_by(id=lessons[0].course.id).first()
     lesson_topics = [lesson.lesson_topic for lesson in lessons]
 
     questions = Question.query.filter(Question.lesson_id.in_([lesson.lesson_id for lesson in lessons])).all()
@@ -964,15 +968,15 @@ def get_weekly_performance():
     swot_analysis = json.loads(swot_analysis_json)
     performance = StudentWeeklyPerformance(
         user_id=user_id,
-        week_id=week_id,
-        course_id=course.id,
+        week_id=week_no,
+        course_id=1,
         aq_score=scores['aq_score'],
         pm_score=scores['pm_score'],
         pp_score=scores['pp_score'],
         gp_score=scores['gp_score'],
         gq_score=scores['gq_score'],
         overall_ai_score=overall_ai_score,
-        ai_report_pdf_url=json.dumps(swot_analysis['swot_analysis'])
+        ai_report_pdf_url = "Use swot analysis" 
     )
 
     db.session.add(performance)
@@ -984,8 +988,6 @@ def get_weekly_performance():
 
 
 def generate_feedback_summary(lessons_feedbacks):
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
-                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     req_response_schema = {
         "title": "Lecture Feedback Summary Schema",
         "description": "Schema for AI-generated feedback summaries for lectures.",
@@ -1092,7 +1094,7 @@ def init_session():
         "session_id": session_id}), 200
 
 
-@app.route("/api/chat", methods=['POST'])
+@app.route("/chat_ai", methods=['POST'])
 def chat_ai():
     session_id = request.json.get("session_id")
     user_message = request.json.get("message")
@@ -1139,454 +1141,157 @@ def chat_ai():
 
 
 
-# ========================= Generating Sample Data ============================
+@app.route('/api/compile', methods=['POST'])
+def compile_code():
+    code = request.json.get("code")
+    public_test_cases = request.json.get("public_test_cases")
+    test_code = request.json.get("test_code")
+    print(code)
+    print(public_test_cases)
+    print(test_code)
+    if not code:
+        return jsonify({'error': 'Code is required'}), 400
+    
+    if not public_test_cases:
+        return jsonify({'error': 'Test cases are required'}), 400
+    
+    response = subprocess.run(['python', '-c', code], capture_output=True, text=True)
 
-def generate_sample_data():
-    user1 = User(username="user123", email="user1@gmail.com", password="pass123")
-    user2 = User(username="user321", email="user2@gmail.com", password="pass321")
+    if response.stderr:
+        return jsonify({'error': response.stderr}), 500
 
-    course = Course(course_name="Python Programming",
-                    course_desc="""
-                            Learn basic programming concepts such as variables, expressions, loops, 
-                            conditionals and functions in Python.
-                            Creating, manipulating, and using more Python specific 
-                            features such as lists, tuples, and dictionaries""")
+    results = []
+    for test_case in public_test_cases:
+        input_value = test_case['input']
+        expected_output = test_case['expected_output']
+        prompt = f"Compile and check the python code and detect and show all the possible syntax errors present in the code and if not then execute this code {code} against the test case {input_value} and return the result."
+        
+        try:
+            response = model2.generate_content(prompt)
+            actual_output = response.candidates[0].content.parts[2].code_execution_result.output
+            print(type(actual_output))
+            print(type(expected_output))
+            print(expected_output)
+            print(actual_output)
+            results.append({
+                'input': input_value,
+                'expected_output': expected_output,
+                'actual_output': actual_output,
+                'passed': str(actual_output.strip()) == str(expected_output)
+            })
+        except Exception as e:
+            results.append({
+                'input': input_value,
+                'expected_output': expected_output,
+                'actual_output': str(e),
+                'passed': False
+            })
 
-    week1 = Week(week_no=1, week_start_date=datetime(2023, 7, 1), week_end_date=datetime(2023, 7, 7))
-    week2 = Week(week_no=2, week_start_date=datetime(2023, 7, 8), week_end_date=datetime(2023, 7, 14))
+    return jsonify({'results': results})
 
-    lesson1_week1 = Lesson(course_id=1, week_id=1,
-                           lesson_topic="Variables and Data Types",
-                           lecture_video_url="https://www.youtube.com/watch?v=-f833WH_cVo")
-    lesson2_week1 = Lesson(course_id=1, week_id=1,
-                           lesson_topic="Conditional Statements",
-                           lecture_video_url="https://www.youtube.com/watch?v=-dBqiRCHbNw")
+@app.route('/api/submit', methods=['POST'])
+def submit():
+    code = request.json.get('code')
+    language = request.json.get('language')
+    private_test_cases = request.json.get('private_test_cases')
+    #question = request.json.get('question')
+    user_id = request.json.get('user_id')
+    question_id = request.json.get('question_id')
+    score = 0
+    for test in private_test_cases:
+        input_value = test['input']
+        expected_output = test['expected_output']
+        prompt = f"Compile and check the python code and detect and show all the possible syntax errors present in the code and if not then execute this code {code} written in the languate{language} against the test case {input_value} and return the result."
+        try:
+            response = model2.generate_content(prompt)
+            actual_output = response.candidates[0].content.parts[2].code_execution_result.output
+            print(type(actual_output))
+            print(type(expected_output))
+            print(expected_output)
+            print(actual_output)
+             
+            if (str(expected_output) == str(actual_output.strip())):
+                score = score + 1
+            else:
+                print("test case failed ")
 
-    lesson1_week2 = Lesson(course_id=1, week_id=2,
-                           lesson_topic="Iterations and Ranges and Loops",
-                           lecture_video_url="https://www.youtube.com/watch?v=SqMeT9caxpE")
-    lesson2_week2 = Lesson(course_id=1, week_id=2,
-                           lesson_topic="Functions in Python", 
-                           lecture_video_url="https://www.youtube.com/watch?v=TBFTFusLIco")
+        except Exception as e:  
+            logging.error(f"Error running test: {str(e)}")
+            return jsonify({'error': str(e)}), 500
 
-    return [user1, user2, course, week1, week2,
-            lesson1_week1, lesson2_week1, lesson1_week2, lesson2_week2]
+    if score == len(private_test_cases):
+        try:
+            # Add the student's code to the StudentQuestion table
+            student_submission = StudentQuestion(
+                user_id = user_id,
+                question_id = question_id,
+                is_correct = 1,
+                programming_code = code,      
+            )
+            db.session.add(student_submission)
+            db.session.commit()
+            return jsonify({'score': score, 'message': 'Code submitted successfully!'}), 200
+        
+        except Exception as e:
+            logging.error(f"Error saving submission: {str(e)}")
+            return jsonify({'error': 'Failed to save submission'}), 500
 
+    return jsonify({'score': score, 'message': 'Some test cases failed'}), 200
 
-def generate_week1_questions():
-    # Lesson 1: Variables and Data Types
-    lesson1_id = 1  # Assume the lesson ID is 1 for "Variables and Data Types"
-    questions_lesson1 = [
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "What is a variable in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "A container for storing data values",
-            "option_2": "A function that performs an operation",
-            "option_3": "A type of loop",
-            "option_4": "A conditional statement",
-            "correct_option": [0],  # Index of correct option
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following is a valid variable name in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "123variable",
-            "option_2": "variable_name",
-            "option_3": "variable-name",
-            "option_4": "variable name",
-            "correct_option": [1],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following data types is mutable?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "int",
-            "option_2": "str",
-            "option_3": "tuple",
-            "option_4": "list",
-            "correct_option": [3],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Select all the immutable data types in Python.",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "int",
-            "option_2": "list",
-            "option_3": "tuple",
-            "option_4": "str",
-            "correct_option": [0, 2, 3],
-            "marks": 5
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following are not primitive data types in Python?",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "int",
-            "option_2": "float",
-            "option_3": "list",
-            "option_4": "str",
-            "correct_option": [2],
-            "marks": 5
-        }
-    ]
-
-    # Lesson 2: Conditional Statements
-    lesson2_id = 2  # Assume the lesson ID is 2 for "Conditional Statements"
-    questions_lesson2 = [
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "What is the syntax for an if statement in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "if (condition) { }",
-            "option_2": "if condition:",
-            "option_3": "if condition then",
-            "option_4": "if condition do",
-            "correct_option": [1],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "What will be the output of the following code: if 5 > 3: print('Yes')?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "Yes",
-            "option_2": "No",
-            "option_3": "Error",
-            "option_4": "None",
-            "correct_option": [0],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which keyword is used for the alternative condition in an if-else statement?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "elseif",
-            "option_2": "elif",
-            "option_3": "else if",
-            "option_4": "alternate",
-            "correct_option": [1],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Select all the logical operators in Python.",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "and",
-            "option_2": "or",
-            "option_3": "not",
-            "option_4": "xor",
-            "correct_option": [0, 1, 2],
-            "marks": 5
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following are valid conditional statements in Python?",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "if condition:",
-            "option_2": "elif condition:",
-            "option_3": "else:",
-            "option_4": "switch condition:",
-            "correct_option": [0, 1, 2],
-            "marks": 5
-        }
-    ]
-
-    return questions_lesson1, questions_lesson2, lesson1_id, lesson2_id
-
-
-def generate_week2_questions():
-    # Lesson 1: Loops
-    lesson3_id = 3  # Assume the lesson ID is 3 for "Loops"
-    questions_lesson3 = [
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "What is the purpose of a loop in programming?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "To repeat a block of code multiple times",
-            "option_2": "To perform a single operation",
-            "option_3": "To define a function",
-            "option_4": "To create a variable",
-            "correct_option": [0],  # Index of correct option
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following is a valid for loop syntax in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "for i in range(5)",
-            "option_2": "loop i from 0 to 5",
-            "option_3": "for (i=0; i<5; i++)",
-            "option_4": "while (i < 5)",
-            "correct_option": [0],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which keyword is used to exit a loop prematurely in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "continue",
-            "option_2": "break",
-            "option_3": "exit",
-            "option_4": "stop",
-            "correct_option": [1],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Select all the loop control statements in Python.",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "break",
-            "option_2": "continue",
-            "option_3": "pass",
-            "option_4": "end",
-            "correct_option": [0, 1, 2],
-            "marks": 5
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following loops will execute at least once?",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "for loop",
-            "option_2": "while loop",
-            "option_3": "do-while loop",
-            "option_4": "nested loop",
-            "correct_option": [2],
-            "marks": 5
-        }
-    ]
-
-    # Lesson 2: Functions
-    lesson4_id = 4  # Assume the lesson ID is 4 for "Functions"
-    questions_lesson4 = [
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "What is a function in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "A block of code which only runs when it is called",
-            "option_2": "A type of variable",
-            "option_3": "A loop control statement",
-            "option_4": "A type of conditional statement",
-            "correct_option": [0],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "How do you define a function in Python?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "function myFunction():",
-            "option_2": "def myFunction():",
-            "option_3": "create myFunction():",
-            "option_4": "define myFunction():",
-            "correct_option": [1],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "What is the correct way to call a function named myFunction?",
-            "question_type_mcq_msq": "MCQ",
-            "option_1": "call myFunction()",
-            "option_2": "myFunction.call()",
-            "option_3": "myFunction()",
-            "option_4": "call function myFunction()",
-            "correct_option": [2],
-            "marks": 3
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Select all the ways to return a value from a function in Python.",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "return value",
-            "option_2": "yield value",
-            "option_3": "output value",
-            "option_4": "return()",
-            "correct_option": [0, 1],
-            "marks": 5
-        },
-        {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
-            "question": "Which of the following statements about functions is true?",
-            "question_type_mcq_msq": "MSQ",
-            "option_1": "A function can have default arguments",
-            "option_2": "A function cannot have multiple return statements",
-            "option_3": "A function can be defined inside another function",
-            "option_4": "A function can return multiple values",
-            "correct_option": [0, 2, 4],
-            "marks": 5
-        }
-    ]
-
-    return questions_lesson3, questions_lesson4, lesson3_id, lesson4_id
-
-
-def generate_sample_ratings():
-    sample_ratings = [
-        {'user_id': 1, 'lesson_id': 1, 'audio': 4, 'video': 3, 'content': 3,
-         'feedback': 'Great lesson, but the content could be more detailed.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 3, 'video': 4, 'content': 4,
-         'feedback': 'Good lecture, but the audio could be improved.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 3, 'video': 4, 'content': 4,
-         'feedback': 'The lecture was good, but the audio quality was poor.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 4, 'video': 3, 'content': 4,
-         'feedback': 'Good lecture, but the content could have been more in-depth.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 4, 'video': 4, 'content': 4,
-         'feedback': 'The lecture was well-organized and the presenter was knowledgeable.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 4, 'video': 4, 'content': 4,
-         'feedback': 'Audio quality was excellent, video visuals were clear, and content was well-structured.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 4, 'video': 3, 'content': 3,
-         'feedback': 'Decent lecture, but the pace was a bit too slow.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 3, 'video': 3, 'content': 4,
-         'feedback': 'Decent lecture, but the audio was a bit too quiet.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 1, 'video': 2, 'content': 2,
-         'feedback': 'The lecture was not very engaging and the content was difficult to understand.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 1, 'video': 2, 'content': 1,
-         'feedback': 'Poor audio, poor video, and content was irrelevant and boring.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 2, 'video': 2, 'content': 1,
-         'feedback': 'Audio was difficult to understand, video was blurry, and content was confusing.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 1, 'video': 2, 'content': 2,
-         'feedback': 'Video was clear, but audio was difficult to understand and content was confusing.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 2, 'video': 2, 'content': 1,
-         'feedback': 'Audio was muffled, video was blurry, content was confusing.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 3, 'video': 4, 'content': 2,
-         'feedback': 'OK audio, OK video, and content was not well-structured.'},
-        {'user_id': 1, 'lesson_id': 2, 'audio': 1, 'video': 1, 'content': 1,
-         'feedback': 'Bad audio, bad video, and content was very bad.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 5, 'video': 5, 'content': 4,
-         'feedback': 'Excellent lecture! Video was particularly impressive.'},
-        {'user_id': 1, 'lesson_id': 1, 'audio': 5, 'video': 5, 'content': 4,
-         'feedback': 'Excellent audio, excellent video, and content was well-structured.'}
-    ]
-
-    ratings = []
-
-    for data in sample_ratings:
-        rating = Rating(
-            user_id=data['user_id'],
-            lesson_id=data['lesson_id'],
-            audio=data['audio'],
-            video=data['video'],
-            content=data['content'],
-            feedback=data['feedback'],
-            created_at=datetime.utcnow()
-        )
-        ratings.append(rating)
-
-    return ratings
-
-
-def generate_sample_ques_submits():
-    sample_submits = [
-        {'user_id': 1, 'question_id': 1, 'is_correct': True, 'programming_code': None},
-        {'user_id': 1, 'question_id': 2, 'is_correct': True, 'programming_code': None},
-        {'user_id': 1, 'question_id': 3, 'is_correct': False, 'programming_code': None},
-        {'user_id': 1, 'question_id': 4, 'is_correct': False, 'programming_code': None},
-        {'user_id': 1, 'question_id': 5, 'is_correct': True, 'programming_code': None},
-        {'user_id': 1, 'question_id': 6, 'is_correct': True, 'programming_code': None},
-        {'user_id': 1, 'question_id': 7, 'is_correct': True, 'programming_code': None},
-        {'user_id': 1, 'question_id': 8, 'is_correct': False, 'programming_code': None},
-        {'user_id': 1, 'question_id': 9, 'is_correct': True, 'programming_code': None},
-        {'user_id': 1, 'question_id': 10, 'is_correct': False, 'programming_code': None}
-    ]
-
-    student_questions = []
-
-    for submit in sample_submits:
-        student_question = StudentQuestion(
-            user_id=submit['user_id'],
-            question_id=submit['question_id'],
-            is_correct=submit['is_correct'],
-            programming_code=submit.get('programming_code')
-        )
-        student_questions.append(student_question)
-
-    return student_questions
-
-@app.route('/create_data', methods=['POST'])
-def create_sample_data_api():
+@app.route('/api/getHint', methods=['POST'])
+def get_hint():
+    code = request.json.get('code')
+    language = request.json.get('language')
+    question = request.json.get('question')
+    prompt = f'''I have the following code snippet in {language} for the question \n\n{question}\n. Can you provide a hint or suggestion for improving or debugging it?\n\n{code}\n'''
+    
     try:
-        # Create sample data
-        sample_data = generate_sample_data()
-        db.session.add_all(sample_data)
-        db.session.commit()
-
-        ql1, ql2, l1, l2 = generate_week1_questions()
-        # Add questions to the database
-        for q in ql1:
-            question = Question(
-                lesson_id=l1,
-                question_type_aq_pm_pp_gp_gq=q["question_type_aq_pm_pp_gp_gq"],
-                question=q["question"],
-                question_type_mcq_msq=q["question_type_mcq_msq"],
-                option_1=q["option_1"],
-                option_2=q["option_2"],
-                option_3=q["option_3"],
-                option_4=q["option_4"],
-                correct_option=q["correct_option"]
-            )
-            db.session.add(question)
-
-        for q in ql2:
-            question = Question(
-                lesson_id=l2,
-                question_type_aq_pm_pp_gp_gq=q["question_type_aq_pm_pp_gp_gq"],
-                question=q["question"],
-                question_type_mcq_msq=q["question_type_mcq_msq"],
-                option_1=q["option_1"],
-                option_2=q["option_2"],
-                option_3=q["option_3"],
-                option_4=q["option_4"],
-                correct_option=q["correct_option"]
-            )
-            db.session.add(question)
-
-        db.session.commit()
-
-        ql3, ql4, l3, l4 = generate_week2_questions()
-        for q in ql3:
-            question = Question(
-                lesson_id=l3,
-                question_type_aq_pm_pp_gp_gq=q["question_type_aq_pm_pp_gp_gq"],
-                question=q["question"],
-                question_type_mcq_msq=q["question_type_mcq_msq"],
-                option_1=q["option_1"],
-                option_2=q["option_2"],
-                option_3=q["option_3"],
-                option_4=q["option_4"],
-                correct_option=q["correct_option"],
-            )
-            db.session.add(question)
-
-        for q in ql4:
-            question = Question(
-                lesson_id=l4,
-                question_type_aq_pm_pp_gp_gq=q["question_type_aq_pm_pp_gp_gq"],
-                question=q["question"],
-                question_type_mcq_msq=q["question_type_mcq_msq"],
-                option_1=q["option_1"],
-                option_2=q["option_2"],
-                option_3=q["option_3"],
-                option_4=q["option_4"],
-                correct_option=q["correct_option"],
-            )
-            db.session.add(question)
-
-        ratings = generate_sample_ratings()
-
-        for rating in ratings:
-            db.session.add(rating)
-
-        student_questions = generate_sample_ques_submits()
-
-        for student_question in student_questions:
-            db.session.add(student_question)
-
-        db.session.commit()
-        return jsonify({"message": "Sample data created successfully"}), 201
+        result = model.generate_content(prompt)
+        htmlContent = markdown.markdown(result.text)
+        return jsonify({'hint': htmlContent})
     except Exception as e:
-        db.session.rollback()  # Rollback in case of any error
-        return jsonify({"error": str(e)}), 500
+        logging.error(f"Error generating hint: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/getCode', methods=['POST'])
+def getCode():
+    data = request.json
+    question_id = data.get('question_id')
+
+    if not question_id:
+        return jsonify({"error": "question_id is required"}), 400
+
+    question = Question.query.get(question_id)
+
+    if not question:
+        return jsonify({"error": "Question not found"}), 404
+    
+    question_statement = question.question
+    #efficient_code = question.Efficient_code
+    efficient_code = ""
+    print(efficient_code)
+    if efficient_code:
+        return jsonify({"efficient_code": efficient_code}), 200
+    
+    else:
+        prompt = f"Please write the efficient Python code with the best time and space complexity for the question: {question_statement}."
+        
+        try:
+            # Assuming `model.generate_content` returns the desired content.
+            response = model2.generate_content(prompt, tools="code_execution")
+            best_code = response.text
+            
+            # Save the best code to the database
+            question.Efficient_code = best_code
+            db.session.commit()
+            return jsonify({"efficient_code": best_code}), 200
+        
+        except Exception as e:
+            # Log the error (for debugging purposes) and handle the exception
+            print(f"Error generating code: {e}")
+            return jsonify({"error": "Error generating efficient code"}), 500
+
+
 
 
 if __name__ == '__main__':
