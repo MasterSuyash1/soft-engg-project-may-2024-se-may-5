@@ -1,4 +1,5 @@
 # This is the testing comment 
+from sqlalchemy import Column, Integer, String, ForeignKey
 from flask import Flask, request, jsonify,session
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -23,7 +24,7 @@ import logging
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir,'backend/instance/users1.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir,'backend/instance/se1.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)  # Enable CORS for all routes
@@ -55,6 +56,7 @@ class JSONEncodedText(TypeDecorator):
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
+    created_at=db.Column(db.DateTime, default=datetime.utcnow)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
@@ -230,7 +232,7 @@ def login():
 #     except Exception as e:
 #         return jsonify({'error': str(e)}), 500
 
-@app.route('/submit_rating', methods=['POST'])
+@app.route('/api/submit_rating', methods=['POST'])
 def submit_rating():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -267,7 +269,7 @@ def get_users():
         'id': user.id,
         'username': user.username,
         'email': user.email,
-        "created_at": user.ratings[-1].created_at if user.ratings else None
+        "created_at": user.created_at
     } for user in users]
     return jsonify(user_list), 200
 
@@ -337,6 +339,7 @@ def activity_quiz(lesson_id):
 
     quiz_data = [
         {
+            'question_id': q.question_id,
             'question': q.question,
             'options': [q.option_1, q.option_2, q.option_3, q.option_4],
             'correct': q.correct_option if q.question_type_mcq_msq == 'MSQ' else q.correct_option[0],
@@ -546,8 +549,9 @@ def new_quiz(lesson_id):
             return jsonify({'new_quiz_data': list(enumerate(session['new_quiz_data']))})
         except Exception as e:
             return jsonify({'error': f'Error generating extra questions: {e}'}),400
-
+    
     if request.method == 'POST':
+        print(session)
         if 'new_quiz_data' not in session:
             return jsonify({'error': 'Quiz data not found. Please start a new quiz.'}), 400
 
@@ -777,7 +781,7 @@ def create_question():
 # =================== Student Weekly Performance Analysis ================================
 
 def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
-  model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
                               generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     required_response_schema = {
         "title": "SWOT Analysis Schema",
@@ -990,7 +994,7 @@ def get_weekly_performance():
 
 
 def generate_feedback_summary(lessons_feedbacks):
-  model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
                               generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     req_response_schema = {
         "title": "Lecture Feedback Summary Schema",
@@ -1242,7 +1246,7 @@ def submit():
 
     return jsonify({'score': score, 'message': 'Some test cases failed'}), 200
 
-@app.route('/api/getHint', methods=['POST'])
+@app.route('/api/explainCode', methods=['POST'])
 def get_hint():
     code = request.json.get('code')
     language = request.json.get('language')
@@ -1250,14 +1254,14 @@ def get_hint():
     prompt = f'''I have the following code snippet in {language} for the question \n\n{question}\n. Can you provide a hint or suggestion for improving or debugging it?\n\n{code}\n'''
     
     try:
-        result = model.generate_content(prompt)
+        result = model2.generate_content(prompt)
         htmlContent = markdown.markdown(result.text)
         return jsonify({'hint': htmlContent})
     except Exception as e:
         logging.error(f"Error generating hint: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/getCode', methods=['POST'])
+@app.route('/api/getEfficientCode', methods=['POST'])
 def getCode():
     data = request.json
     question_id = data.get('question_id')
