@@ -34,10 +34,6 @@ tags:
     description: Student solving graded questions 
   - name: Weekly Performance
     description: Generate student weekly performance report with SWOT analysis
-  - name: Sentiment Analysis
-    description: Generate Lecture Feedback Sentiment Analysis
-  - name: ChatBot
-    description: Interactive Chat Context Based ChatBot
 paths:
   /signup:
     post:
@@ -280,21 +276,21 @@ paths:
                     question:
                       type: string
                       description: The question text.
-                      example: What is the capital of France?
+                      example: Which of the following data types is mutable?
                     options:
                       type: array
                       description: List of possible answers.
                       items:
                         type: string
                       example:
-                        - Paris
-                        - Berlin
-                        - Rome
-                        - Madrid
+                        - int
+                        - str
+                        - tuple
+                        - list
                     correct:
                       type: string
                       description: The correct answer or answers.
-                      example: Paris
+                      example: list
                     type:
                       type: string
                       description: The type of question (MCQ or MSQ).
@@ -302,11 +298,11 @@ paths:
                     marks:
                       type: integer
                       description: Marks assigned for the question.
-                      example: 5
+                      example: 3
                     topic:
                       type: string
                       description: The topic of the lesson.
-                      example: Geography
+                      example: Python
         '404':
           description: Lesson or questions not found
           content:
@@ -329,16 +325,17 @@ paths:
             schema:
               type: object
               properties:
+                user_id:
+                  type: integer
+                  description: The ID of the user submitting the quiz.
+                  example: 1
                 answers:
                   type: object
                   additionalProperties:
                     type: string
                   description: A mapping of question indices to user-provided answers.
                   example:
-                    '0': Paris
-                    '1':
-                      - Answer1
-                      - Answer2
+                    '0': str
       responses:
         '200':
           description: Quiz results with scores and explanations
@@ -356,42 +353,41 @@ paths:
                         question:
                           type: string
                           description: The question text.
-                          example: What is the capital of France?
+                          example: Which of the following data types is mutable?
                         correct_answer:
                           type: string
                           description: The correct answer.
-                          example: Paris
+                          example: list
                         user_answer:
                           type: string
                           description: The answer provided by the user.
-                          example: Paris
+                          example: tuple
                         is_correct:
                           type: boolean
                           description: Whether the user's answer was correct.
-                          example: true
+                          example: false
                         score:
                           type: integer
                           description: The score received for this question.
-                          example: 5
+                          example: 3
                         explanation:
                           type: string
                           description: Explanation for the question, if incorrect.
                           example: >-
-                            The capital of France is Paris, which is located in
-                            the northern part of the country.
+                            The correct answer is list because we can change an item in a list by accessing it directly as part of the assignment statement.
                   total_score:
                     type: integer
                     description: The total score achieved by the user.
-                    example: 15
+                    example: 3
                   max_score:
                     type: integer
                     description: The maximum possible score for the quiz.
-                    example: 20
+                    example: 0
                   score_percentage:
                     type: number
                     description: The percentage score achieved.
                     format: float
-                    example: 75
+                    example: 0.0
         '400':
           description: Error in generating explanations
           content:
@@ -454,21 +450,21 @@ paths:
                         question:
                           type: string
                           description: The text of the question.
-                          example: What is the capital of Germany?
+                          example: Which of the following data types is mutable?
                         options:
                           type: array
                           description: List of possible answers.
                           items:
                             type: string
                           example:
-                            - Berlin
-                            - Munich
-                            - Hamburg
-                            - Cologne
+                            - int
+                            - str
+                            - tuple
+                            - list
                         correct:
                           type: string
                           description: The correct answer or answers.
-                          example: Berlin
+                          example: list
                         type:
                           type: string
                           description: The type of question (MCQ or MSQ).
@@ -480,7 +476,7 @@ paths:
                         topic:
                           type: string
                           description: The topic of the lesson.
-                          example: Geography
+                          example: python
         '400':
           description: Error generating questions
           content:
@@ -521,10 +517,7 @@ paths:
                     type: string
                   description: A mapping of question indices to user-provided answers.
                   example:
-                    '0': Berlin
-                    '1':
-                      - Answer1
-                      - Answer2
+                    '0': str
       responses:
         '200':
           description: Quiz results with scores and explanations
@@ -542,35 +535,34 @@ paths:
                         question:
                           type: string
                           description: The question text.
-                          example: What is the capital of Germany?
+                          example: Which of the following data types is mutable?
                         options:
                           type: array
                           description: List of possible answers.
                           items:
                             type: string
                           example:
-                            - Berlin
-                            - Munich
-                            - Hamburg
-                            - Cologne
+                            - int
+                            - str
+                            - tuple
+                            - list
                         user_answer:
                           type: string
                           description: The answer provided by the user.
-                          example: Berlin
+                          example: str
                         correct_answer:
                           type: string
                           description: The correct answer.
-                          example: Berlin
+                          example: list
                         is_correct:
                           type: boolean
                           description: Whether the user's answer was correct.
-                          example: true
+                          example: false
                         explanation:
                           type: string
                           description: Explanation for the question, if incorrect.
                           example: >-
-                            The capital of Germany is Berlin, which is also the
-                            largest city in the country.
+                            The correct answer is list because we can change an item in a list by accessing it directly as part of the assignment statement.
                   total_score:
                     type: integer
                     description: The total score achieved by the user.
@@ -578,7 +570,7 @@ paths:
                   max_score:
                     type: integer
                     description: The maximum possible score for the quiz.
-                    example: 5
+                    example: 0
         '400':
           description: Error in processing answers or quiz data not found
           content:
@@ -684,16 +676,17 @@ paths:
             schema:
               type: object
               properties:
+                user_id:
+                  type: integer
+                  description: The ID of the user submitting the quiz.
+                  example: 1
                 answers:
                   type: object
                   additionalProperties:
                     type: string
                   description: A mapping of question indices to user-provided answers.
                   example:
-                    '0': Paris
-                    '1':
-                      - Option1
-                      - Option2
+                    '0': str
       responses:
         '200':
           description: Quiz results with scores and explanations.
@@ -711,35 +704,34 @@ paths:
                         question:
                           type: string
                           description: The question text.
-                          example: What is the capital of France?
+                          example: Which of the following data types is mutable?
                         options:
                           type: array
                           description: List of possible answers.
                           items:
                             type: string
                           example:
-                            - Paris
-                            - Berlin
-                            - Madrid
-                            - Rome
+                            - int
+                            - str
+                            - tuple
+                            - list
                         user_answer:
                           type: string
                           description: The answer provided by the user.
-                          example: Paris
+                          example: str
                         correct_answer:
                           type: string
                           description: The correct answer.
-                          example: Paris
+                          example: list
                         is_correct:
                           type: boolean
                           description: Whether the user's answer was correct.
-                          example: true
+                          example: false
                         explanation:
                           type: string
                           description: Explanation for the question, if incorrect.
                           example: >-
-                            The capital of France is Paris, which is also the
-                            largest city in the country.
+                            The correct answer is list because we can change an item in a list by accessing it directly as part of the assignment statement.
                   score:
                     type: integer
                     description: The total score achieved by the user.
@@ -747,7 +739,7 @@ paths:
                   max_score:
                     type: integer
                     description: The maximum possible score for the quiz.
-                    example: 5
+                    example: 0
         '400':
           description: Error in processing answers or quiz data not found.
           content:
@@ -848,152 +840,6 @@ paths:
                   error:
                     type: string
                     example: Internal server error occurred.
-  /api/lessons:
-    post:
-      summary: Create a New Lesson
-      description: Creates a new lesson entry in the database.
-      requestBody:
-        description: Details of the lesson to be created.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                course_id:
-                  type: integer
-                  description: ID of the course to which the lesson belongs.
-                week_id:
-                  type: integer
-                  description: ID of the week during which the lesson occurs.
-                lesson_topic:
-                  type: string
-                  description: Topic of the lesson.
-                lecture_video_url:
-                  type: string
-                  description: URL of the lecture video.
-              required:
-                - course_id
-                - week_id
-      responses:
-        '200':
-          description: Lesson created successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Lesson created successfully
-                  lesson_id:
-                    type: integer
-                    description: ID of the newly created lesson.
-                    example: 123
-        '400':
-          description: Bad request. The input data might be missing or invalid.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Invalid input data
-        '500':
-          description: Internal server error.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Internal server error occurred
-  /api/questions:
-    post:
-      summary: Create a New Question
-      description: Creates a new question entry in the database.
-      requestBody:
-        description: Details of the question to be created.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                lesson_id:
-                  type: integer
-                  description: ID of the lesson to which the question belongs.
-                question_type_aq_pm_pp_gp_gq:
-                  type: string
-                  description: Type of the question (e.g., AQ for Activity Questions).
-                question:
-                  type: string
-                  description: The text of the question.
-                question_type_mcq_msq:
-                  type: string
-                  description: >-
-                    Type of question (MCQ for multiple-choice questions, MSQ for
-                    multiple-select questions).
-                option_1:
-                  type: string
-                  description: Option 1 for the question.
-                option_2:
-                  type: string
-                  description: Option 2 for the question.
-                option_3:
-                  type: string
-                  description: Option 3 for the question.
-                option_4:
-                  type: string
-                  description: Option 4 for the question.
-                correct_option:
-                  oneOf:
-                    - type: string
-                      description: The correct answer for single-choice questions.
-                    - type: array
-                      items:
-                        type: string
-                      description: List of correct answers for multiple-select questions.
-              required:
-                - lesson_id
-                - question
-                - question_type_mcq_msq
-                - correct_option
-      responses:
-        '200':
-          description: Question created successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Question created successfully
-                  question_id:
-                    type: integer
-                    description: ID of the newly created question.
-                    example: 456
-        '400':
-          description: Bad request. The input data might be missing or invalid.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Invalid input data
-        '500':
-          description: Internal server error.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Internal server error occurred
   /api/weekly_performance_analysis:
     post:
       tags:
@@ -1120,26 +966,37 @@ paths:
                 code:
                   type: string
                   description: The code to be compiled and executed.
+                  example: "def add(a, b): return a+b"
+                language:
+                  type: string
+                  description: The programming language of the code.
+                  example: "python"
                 public_test_cases:
                   type: array
                   items:
                     type: object
                     properties:
-                      input:
-                        type: string
+                      input: 
+                        type: array
                         description: Input for the test case.
+                        items:
+                          type: integer  # specify the type of input elements
+                        example: [1, 2]
                       expected_output:
-                        type: string
+                        type: integer
                         description: Expected output for the test case.
+                        example: 3
                   description: List of test cases to validate the code.
                 test_code:
                   type: string
                   description: >-
                     Additional code or instructions for testing (not used in the
                     current implementation).
+                  example: "{code}\nprint(add({input}))"
               required:
                 - code
                 - public_test_cases
+                - language
       responses:
         '200':
           description: Code compiled and tested successfully.
@@ -1156,17 +1013,25 @@ paths:
                         input:
                           type: string
                           description: The input provided for the test case.
+                          example:
+                            "[1,2]"
                         expected_output:
                           type: string
                           description: The expected output for the test case.
+                          example:
+                            "3"
                         actual_output:
                           type: string
                           description: The actual output from executing the code.
+                          example:
+                            "3"
                         passed:
                           type: boolean
                           description: >-
                             Indicates whether the actual output matches the
                             expected output.
+                          example:
+                            true
         '400':
           description: Bad request, missing code or test cases.
           content:
@@ -1205,32 +1070,36 @@ paths:
                 code:
                   type: string
                   description: The code to be executed.
+                  example: "def add(a, b): return a+b"
                 language:
                   type: string
                   description: The programming language of the code (e.g., Python).
+                  example: "python"
                 private_test_cases:
                   type: array
                   items:
                     type: object
                     properties:
                       input:
-                        type: string
+                        type: array
                         description: Input for the test case.
+                        items:
+                          type: integer  # specifying the type of elements
+                        example: [0, 0]
                       expected_output:
-                        type: string
+                        type: integer  # specifying the type of expected output
                         description: Expected output for the test case.
+                        example: 0
                   description: List of private test cases to validate the code.
-                question:
-                  type: string
-                  description: >-
-                    The question or task that the code is solving (not used in
-                    the code).
+              
                 user_id:
                   type: integer
                   description: ID of the user submitting the code.
+                  example: 1
                 question_id:
                   type: integer
                   description: ID of the question being solved.
+                  example: 1
               required:
                 - code
                 - private_test_cases
@@ -1247,9 +1116,13 @@ paths:
                   score:
                     type: integer
                     description: The score achieved based on passing test cases.
+                    example:
+                      1
                   message:
                     type: string
                     description: Message indicating the result of the submission.
+                    example:
+                      Code submitted successfully!
         '500':
           description: >-
             Internal server error, issues during code execution or saving
@@ -1262,7 +1135,7 @@ paths:
                   error:
                     type: string
                     description: Error message detailing the problem.
-  /api/getHint:
+  /api/explainCode:
     post:
       tags:
         - Programming Questions
@@ -1280,14 +1153,16 @@ paths:
                 code:
                   type: string
                   description: The code snippet for which the hint is required.
+                  example: "def add(a, b): return a"
                 language:
                   type: string
                   description: >-
-                    The programming language of the provided code (e.g.,
-                    Python).
+                    The programming language of the provided code (e.g., Python).
+                  example: "python"
                 question:
                   type: string
                   description: The question or task that the code is related to.
+                  example: "Write a python function to return sum of two numbers"
               required:
                 - code
                 - language
@@ -1313,7 +1188,7 @@ paths:
                   error:
                     type: string
                     description: Error message detailing the problem.
-  /api/getCode:
+  /api/getSolution:
     post:
       tags:
         - Programming Questions
@@ -1383,7 +1258,7 @@ paths:
   /api/chat:
     post:
       tags:
-        - ChatBot
+        - Lectures
       summary: Interact with AI for Python Programming Tutoring
       description: >-
         Allows users to interact with an AI model that behaves like a mentor, tutor, or teacher for Python programming.
@@ -1440,7 +1315,7 @@ paths:
   /api/sentiment_analysis:
     post:
       tags:
-        - Sentiment Analysis
+        - Lectures
       summary: Generate sentiment analysis and feedback summary for lectures
       description: >-
         Analyzes student feedback for lectures, generates a sentiment score,
@@ -1480,6 +1355,5 @@ paths:
                   error:
                     type: string
                     example: Internal server error occurred
-
 
 
