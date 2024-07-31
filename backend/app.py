@@ -35,8 +35,6 @@ genai.configure(api_key=api_key)
 
 app.secret_key = 'your_secret_key'
 
-model = genai.GenerativeModel(model_name="gemini-1.5-flash",
-                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
 
 model2 = genai.GenerativeModel(model_name="gemini-1.5-flash", tools = "code_execution")
 
@@ -777,6 +775,8 @@ def create_question():
 # =================== Student Weekly Performance Analysis ================================
 
 def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
+  model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     required_response_schema = {
         "title": "SWOT Analysis Schema",
         "description": "Schema for representing a comprehensive SWOT analysis",
@@ -988,6 +988,8 @@ def get_weekly_performance():
 
 
 def generate_feedback_summary(lessons_feedbacks):
+  model = genai.GenerativeModel(model_name="gemini-1.5-flash",
+                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     req_response_schema = {
         "title": "Lecture Feedback Summary Schema",
         "description": "Schema for AI-generated feedback summaries for lectures.",
