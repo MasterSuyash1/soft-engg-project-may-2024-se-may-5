@@ -1094,7 +1094,7 @@ def init_session():
         "session_id": session_id}), 200
 
 
-@app.route("/chat_ai", methods=['POST'])
+@app.route("/api/chat", methods=['POST'])
 def chat_ai():
     session_id = request.json.get("session_id")
     user_message = request.json.get("message")
