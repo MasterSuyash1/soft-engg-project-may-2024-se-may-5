@@ -1,0 +1,3 @@
+Traceback (most recent call last):
+  File "/Users/suyash/Downloads/soft-engg-project-may-2024-se-may-5-main 4/backend/codes/app.py", line 2, in <module>
+OSError: [Errno 28] No space left on device

@@ -7,6 +7,10 @@
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
+<<<<<<< HEAD
+=======
+    "@monaco-editor/react": "^4.6.0",
+>>>>>>> a24dc1c (Made some changes)
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
