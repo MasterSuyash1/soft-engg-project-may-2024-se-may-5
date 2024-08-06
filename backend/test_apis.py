@@ -7,6 +7,7 @@ import requests
 # 2. Replicating 500 Internal Server Error
 # 3. Compile and submit Code API endpoints. Need help with what happens when invalid syntax, etc are there
 # 4. For users / login / signup test cases: need the user_id, username, password that are already there in the database to run cases
+# 5. 
 
 BASE_URL = "http://127.0.0.1:5000"
 
@@ -374,7 +375,21 @@ def test_compile_code_successful():
     pass
 
 def test_compile_code_syntax_error():
-    pass
+    data = {
+        "code" : "def add(a, b): return a+b;", 
+        "language" : "python", 
+        "public_test_cases" : [
+            {
+                "input" :[3, 2], 
+                "expected_output":5
+            }
+        ]
+    }
+    response = requests.post(f"{BASE_URL}/api/compile", json=data)
+    assert response.status_code == 200
+    failed_test_cases = [ i for i in response.json()['results'] if not i['passed'] ]
+    if len(failed_test_cases) > 0:
+        assert failed_test_cases[0]['passed'] == False
 
 def test_submit_code_successful():
     """
