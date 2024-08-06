@@ -16,11 +16,11 @@ def test_delete_user_user_not_found():
     Tests whether the code correctly rejects deleting a user which does not exist
     """
     user_id = -1
-    response = requests.delete(f"{BASE_URL}/users/{user_id}")
+    response = requests.delete(f"{BASE_URL}/api/users/{user_id}")
     assert response.status_code == 400
 
     user_id = 999999
-    response = requests.delete(f"{BASE_URL}/users/{user_id}")
+    response = requests.delete(f"{BASE_URL}/api/users/{user_id}")
     assert response.status_code == 404
 
 def test_delete_user_successful():
@@ -28,14 +28,14 @@ def test_delete_user_successful():
     Tests whether the code correctly deletes a user based on the ID
     """
     user_id = 1
-    response = requests.delete(f"{BASE_URL}/users/{user_id}")
+    response = requests.delete(f"{BASE_URL}/api/users/{user_id}")
     assert response.status_code == 200
 
 def test_get_users_successful():
     """
     Tests whether the app correctly returns the list of users
     """
-    response = requests.get(f"{BASE_URL}/users")
+    response = requests.get(f"{BASE_URL}/api/users")
     assert response.status_code == 200
 
     response_data = response.json()
@@ -121,7 +121,7 @@ def test_login_invalid_inputs():
     Tests whether the app correctly accepts and logs in a new user
     """
     data = {"email": "usernameemail.com", "password": "somepassword"}
-    response = requests.post(f"{BASE_URL}/users", data=data)
+    response = requests.post(f"{BASE_URL}/login", data=data)
     assert response.status_code == 201
 
 def test_login_invalid_credentials():
@@ -135,7 +135,7 @@ def test_login_invalid_credentials():
     assert str(response.json()['message']).upper() == "INVALID CREDENTIALS"
 
     data = {"email": "wrongemail@email.com", "password": "correctpassword"}
-    response = requests.post(f"{BASE_URL}/users", data=data)
+    response = requests.post(f"{BASE_URL}/login", data=data)
     assert response.status_code == 401
 
 def test_login_successful():
@@ -143,7 +143,7 @@ def test_login_successful():
     Tests whether the app correctly accepts and logs in a new user
     """
     data = {"email": "username@email.com", "password": "somepassword"}
-    response = requests.post(f"{BASE_URL}/users", data=data)
+    response = requests.post(f"{BASE_URL}/login", data=data)
     assert response.status_code == 200
     assert str(response.json()['message']).upper() == "LOGIN SUCCESSFUL"
 
