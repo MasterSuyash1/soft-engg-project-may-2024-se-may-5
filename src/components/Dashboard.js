@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import React from 'react';
+=======
 import React, { useEffect } from 'react';
+>>>>>>> main
 import {
   Box,
   Flex,
@@ -11,6 +15,16 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
+<<<<<<< HEAD
+} from '@chakra-ui/react';
+import { ArrowBackIcon } from '@chakra-ui/icons';
+import { Link as RouterLink } from 'react-router-dom';
+
+const Dashboard = () => {
+  return (
+    <Flex minHeight="100vh" direction="column" bg="gray.100">
+      <Box bg="white" p={4} boxShadow="md">
+=======
   Button,
   useColorMode,
   useColorModeValue,
@@ -43,6 +57,7 @@ const Dashboard = () => {
   return (
     <Flex minHeight="100vh" direction="column" bg={bg}>
       <Box bg={bgBox} p={4} boxShadow="md">
+>>>>>>> main
         <Flex justify="space-between" align="center">
           <IconButton
             as={RouterLink}
@@ -50,6 +65,16 @@ const Dashboard = () => {
             icon={<ArrowBackIcon />}
             aria-label="Home"
           />
+<<<<<<< HEAD
+          <Text fontSize="2xl" fontWeight="bold" color="teal.600">
+            AlgoMatrix Learning
+          </Text>
+        </Flex>
+      </Box>
+      <Flex flex="1">
+        <Box w="20%" bg="white" p={4} boxShadow="md">
+          <Text fontSize="lg" fontWeight="bold" mb={4} color="teal.600">
+=======
           <Text fontSize="2xl" fontWeight="bold" color={textColor}>
             AlgoMatrix Learning
           </Text>
@@ -72,17 +97,32 @@ const Dashboard = () => {
       <Flex flex="1">
         <Box w="20%" bg={bgBox} p={4} boxShadow="md">
           <Text fontSize="lg" fontWeight="bold" mb={4} color={textColor}>
+>>>>>>> main
             Introduction to Algorithms
           </Text>
           <Accordion allowMultiple>
             <AccordionItem>
               <AccordionButton>
+<<<<<<< HEAD
+                <Box flex="1" textAlign="left" fontWeight="medium" color="teal.500">
+=======
                 <Box flex="1" textAlign="left" fontWeight="medium" color={textColorAccordion}>
+>>>>>>> main
                   Week 1
                 </Box>
                 <AccordionIcon />
               </AccordionButton>
               <AccordionPanel pb={4}>
+<<<<<<< HEAD
+                <VStack align="start" spacing={3}>
+                  <Link as={RouterLink} to="#" fontWeight="medium" color="teal.500" _hover={{ textDecoration: 'underline' }}>
+                    Lecture 1
+                  </Link>
+                  <Link as={RouterLink} to="#" fontWeight="medium" color="teal.500" _hover={{ textDecoration: 'underline' }}>
+                    Activity Questions
+                  </Link>
+                  <Link as={RouterLink} to="#" fontWeight="medium" color="teal.500" _hover={{ textDecoration: 'underline' }}>
+=======
                 <VStack align="start" spacing={3} pl={4}>
                   <Link as={RouterLink} to="#" fontWeight="medium" color={textColorAccordion} _hover={{ textDecoration: 'underline' }}>
                     Lecture 1
@@ -91,6 +131,7 @@ const Dashboard = () => {
                     Activity Questions
                   </Link>
                   <Link as={RouterLink} to="/programming-assignment" fontWeight="medium" color={textColorAccordion} _hover={{ textDecoration: 'underline' }}>
+>>>>>>> main
                     Programming Assignments
                   </Link>
                 </VStack>
@@ -98,12 +139,26 @@ const Dashboard = () => {
             </AccordionItem>
             <AccordionItem>
               <AccordionButton>
+<<<<<<< HEAD
+                <Box flex="1" textAlign="left" fontWeight="medium" color="teal.500">
+=======
                 <Box flex="1" textAlign="left" fontWeight="medium" color={textColorAccordion}>
+>>>>>>> main
                   Week 2
                 </Box>
                 <AccordionIcon />
               </AccordionButton>
               <AccordionPanel pb={4}>
+<<<<<<< HEAD
+                <VStack align="start" spacing={3}>
+                  <Link as={RouterLink} to="#" fontWeight="medium" color="teal.500" _hover={{ textDecoration: 'underline' }}>
+                    Lecture 2
+                  </Link>
+                  <Link as={RouterLink} to="#" fontWeight="medium" color="teal.500" _hover={{ textDecoration: 'underline' }}>
+                    Activity Questions
+                  </Link>
+                  <Link as={RouterLink} to="#" fontWeight="medium" color="teal.500" _hover={{ textDecoration: 'underline' }}>
+=======
                 <VStack align="start" spacing={3} pl={4}>
                   <Link as={RouterLink} to="#" fontWeight="medium" color={textColorAccordion} _hover={{ textDecoration: 'underline' }}>
                     Lecture 2
@@ -112,6 +167,7 @@ const Dashboard = () => {
                     Activity Questions
                   </Link>
                   <Link as={RouterLink} to="/programming-assignment" fontWeight="medium" color={textColorAccordion} _hover={{ textDecoration: 'underline' }}>
+>>>>>>> main
                     Programming Assignments
                   </Link>
                 </VStack>
@@ -120,8 +176,13 @@ const Dashboard = () => {
             {/* Add more weeks as needed */}
           </Accordion>
         </Box>
+<<<<<<< HEAD
+        <Box flex="1" p={6} bg="white" boxShadow="md" ml={4}>
+          <Box borderWidth={1} borderRadius="lg" overflow="hidden" bg="gray.50" p={4}>
+=======
         <Box flex="1" p={6} bg={bgBox} boxShadow="md" ml={4}>
           <Box borderWidth={1} borderRadius="lg" overflow="hidden" bg={videoBoxBg} p={4} borderColor={borderColor}>
+>>>>>>> main
             <iframe
               width="100%"
               height="400px"
@@ -132,9 +193,25 @@ const Dashboard = () => {
               title="Lecture Video"
             ></iframe>
           </Box>
+<<<<<<< HEAD
+          <Flex mt={4} justify="space-around" borderTop="1px solid" borderColor="gray.200" pt={4}>
+            <Link as={RouterLink} to="#" color="teal.600" _hover={{ textDecoration: 'underline' }}>
+              About
+            </Link>
+            <Link as={RouterLink} to="#" color="teal.600" _hover={{ textDecoration: 'underline' }}>
+              Transcript
+            </Link>
+            <Link as={RouterLink} to="#" color="teal.600" _hover={{ textDecoration: 'underline' }}>
+              Ask me
+            </Link>
+            <Link as={RouterLink} to="#" color="teal.600" _hover={{ textDecoration: 'underline' }}>
+              Rate this Video
+            </Link>
+=======
           <Flex mt={4} justify="space-around" borderTop="1px solid" borderColor={borderColor} pt={4}>
             <RateVideoModal />
             <ChatBotModal />
+>>>>>>> main
           </Flex>
         </Box>
       </Flex>

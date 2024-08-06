@@ -207,14 +207,18 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    if user and check_password_hash(user.password, data['password']):
+        return jsonify({'message': 'Login successful'}), 200
+    else:
+        return jsonify({'message': 'Invalid credentials'}), 401
+
     email = data.get('email')
     password = data.get('password')
     
-    # Check for admin credentials
     if email == 'admin@gmail.com' and password == 'admin123':
         return jsonify({'message': 'Admin login successful', 'is_admin': True}), 200
-    
-    # Regular user login
+
     user = User.query.filter_by(email=email).first()
     if user and check_password_hash(user.password, password):
         return jsonify({'message': 'Login successful', 'is_admin': False}), 200
