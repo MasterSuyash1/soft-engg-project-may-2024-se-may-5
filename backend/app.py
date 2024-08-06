@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-# ----------------------------------------------------------------------- #
-# DO NOT TRY TO CHANGE THE CODE OTHERWISE YOU WILL FACE CONSEQUENCES
-# ----------------------------------------------------------------------- #
-# This is the final version of app.py and api testing is based on this.
-=======
 # This is the testing comment 
->>>>>>> a24dc1c (Made some changes)
 from sqlalchemy import Column, Integer, String, ForeignKey
 from flask import Flask, request, jsonify,session
 from flask_sqlalchemy import SQLAlchemy
@@ -27,11 +20,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from google.generativeai import GenerationConfig
 import subprocess
 import logging
-<<<<<<< HEAD
-=======
 import tempfile
 from api import run
->>>>>>> a24dc1c (Made some changes)
 
 
 app = Flask(__name__)
@@ -1761,9 +1751,6 @@ def create_sample_data_api():
         db.session.rollback()  # Rollback in case of any error
         return jsonify({"error": str(e)}), 500
 
-<<<<<<< HEAD
-
-=======
 @app.route("/compile", methods=["POST"])
 def compile():
     try:
@@ -1778,13 +1765,8 @@ def compile():
     except Exception as e:
         app.logger.error(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
->>>>>>> a24dc1c (Made some changes)
 
 if __name__ == '__main__':
     with app.app_context():
        db.create_all()
-<<<<<<< HEAD
     app.run(debug=True)
-=======
-    app.run(debug=True)
->>>>>>> a24dc1c (Made some changes)

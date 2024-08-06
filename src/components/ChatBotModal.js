@@ -1,17 +1,9 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-=======
 import React, { useState, useEffect } from 'react';
->>>>>>> a24dc1c (Made some changes)
 import {
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
-<<<<<<< HEAD
-  ModalFooter,
-=======
->>>>>>> a24dc1c (Made some changes)
   ModalBody,
   ModalCloseButton,
   Button,
@@ -22,20 +14,14 @@ import {
   HStack,
   Avatar,
   useDisclosure,
-<<<<<<< HEAD
-  Text
-=======
   Text,
   keyframes,
   usePrefersReducedMotion,
->>>>>>> a24dc1c (Made some changes)
 } from '@chakra-ui/react';
 import { ChatIcon } from '@chakra-ui/icons';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 
-<<<<<<< HEAD
-=======
 // Define keyframes for jumping animation
 const jump = keyframes`
   0%, 100% { transform: translateY(0); }
@@ -62,13 +48,10 @@ const LoadingDots = () => {
   );
 };
 
->>>>>>> a24dc1c (Made some changes)
 const ChatBotModal = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-<<<<<<< HEAD
-=======
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -78,27 +61,10 @@ const ChatBotModal = () => {
       setMessages([{ text: initialMessage, isUser: false }]);
     }
   }, [isOpen]);
->>>>>>> a24dc1c (Made some changes)
 
   const handleSendMessage = () => {
     if (inputValue.trim() !== '') {
       setMessages([...messages, { text: inputValue, isUser: true }]);
-<<<<<<< HEAD
-
-      axios.post('http://127.0.0.1:5000/chat', { message: inputValue })
-        .then(response => {
-          setMessages(prev => [
-            ...prev,
-            { text: response.data.response, isUser: false },
-          ]);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          setMessages(prev => [
-            ...prev,
-            { text: 'Error getting response from the server.', isUser: false },
-          ]);
-=======
       setIsLoading(true);
 
       axios
@@ -117,7 +83,6 @@ const ChatBotModal = () => {
             { text: 'Error getting response from the server.', isUser: false },
           ]);
           setIsLoading(false);
->>>>>>> a24dc1c (Made some changes)
         });
 
       setInputValue('');
@@ -155,11 +120,7 @@ const ChatBotModal = () => {
                       <Avatar
                         name="Bot"
                         size="sm"
-<<<<<<< HEAD
-                        src="https://bit.ly/bot-avatar"
-=======
                         src="/assets/robot.png" // Ensure this path is correct
->>>>>>> a24dc1c (Made some changes)
                       />
                     )}
                     <Box
@@ -179,17 +140,11 @@ const ChatBotModal = () => {
                       <Avatar
                         name="User"
                         size="sm"
-<<<<<<< HEAD
-                        src="https://bit.ly/user-avatar"
-=======
                         src="/assets/user.png" 
->>>>>>> a24dc1c (Made some changes)
                       />
                     )}
                   </HStack>
                 ))}
-<<<<<<< HEAD
-=======
                 {isLoading && (
                   <HStack justify="flex-start" mb={2}>
                     <Avatar
@@ -209,20 +164,14 @@ const ChatBotModal = () => {
                     </Box>
                   </HStack>
                 )}
->>>>>>> a24dc1c (Made some changes)
               </Box>
               <FormControl>
                 <HStack>
                   <Input
                     placeholder="Type your question..."
                     value={inputValue}
-<<<<<<< HEAD
-                    onChange={e => setInputValue(e.target.value)}
-                    onKeyPress={e => {
-=======
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={(e) => {
->>>>>>> a24dc1c (Made some changes)
                       if (e.key === 'Enter') {
                         handleSendMessage();
                       }
