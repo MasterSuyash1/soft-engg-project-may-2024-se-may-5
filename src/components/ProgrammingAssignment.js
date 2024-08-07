@@ -1,39 +1,19 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-=======
 import React, { useState } from "react";
->>>>>>> a24dc1c (Made some changes)
 import {
   Box,
   Flex,
   Text,
   Button,
-<<<<<<< HEAD
-  Select,
-=======
->>>>>>> a24dc1c (Made some changes)
   VStack,
   Spinner,
   Alert,
   AlertIcon,
-<<<<<<< HEAD
-} from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
-import { ArrowBackIcon } from '@chakra-ui/icons';
-import Editor from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs/components/prism-core';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-python';
-import 'prismjs/themes/prism.css';
-=======
   Select,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import Editor from "@monaco-editor/react";
 import axios from "axios";
->>>>>>> a24dc1c (Made some changes)
 
 const sampleQuestion = {
   title: "Sum of Two Numbers",
@@ -45,21 +25,6 @@ const sampleQuestion = {
   ],
 };
 
-<<<<<<< HEAD
-const ProgrammingAssignment = () => {
-  const [language, setLanguage] = useState("javascript");
-  const [code, setCode] = useState("");
-  const [isRunning, setIsRunning] = useState(false);
-  const [result, setResult] = useState(null);
-
-  const runCode = () => {
-    setIsRunning(true);
-    // Simulate running the code and checking test cases
-    setTimeout(() => {
-      setResult("All test cases passed!");
-      setIsRunning(false);
-    }, 2000);
-=======
 const supportedThemes = [
   "vs-dark",
   "light",
@@ -96,23 +61,18 @@ const ProgrammingAssignment = () => {
 
   const handleEditorChange = (value) => {
     setCode(value);
->>>>>>> a24dc1c (Made some changes)
   };
 
   return (
     <Flex minHeight="100vh" direction="column" bg="gray.100">
       <Box bg="white" p={4} boxShadow="md">
         <Flex justify="space-between" align="center">
-<<<<<<< HEAD
-          <Button as={RouterLink} to="/dashboard" leftIcon={<ArrowBackIcon />} colorScheme="teal">
-=======
           <Button
             as={RouterLink}
             to="/dashboard"
             leftIcon={<ArrowBackIcon />}
             colorScheme="teal"
           >
->>>>>>> a24dc1c (Made some changes)
             Back to Dashboard
           </Button>
           <Text fontSize="2xl" fontWeight="bold" color="teal.600">
@@ -122,60 +82,26 @@ const ProgrammingAssignment = () => {
       </Box>
       <Flex flex="1" p={6} bg="white" boxShadow="md" m={4} borderRadius="lg">
         <VStack align="start" spacing={4} w="40%" pr={4} borderRight="1px solid #E2E8F0">
-<<<<<<< HEAD
-          <Text fontSize="xl" fontWeight="bold">{sampleQuestion.title}</Text>
-=======
           <Text fontSize="xl" fontWeight="bold">
             {sampleQuestion.title}
           </Text>
->>>>>>> a24dc1c (Made some changes)
           <Text>{sampleQuestion.description}</Text>
           <Box w="100%" p={4} borderWidth={1} borderRadius="lg" bg="gray.50">
             <Text fontWeight="bold">Test Cases:</Text>
             {sampleQuestion.testCases.map((testCase, index) => (
               <Box key={index} p={2} borderWidth={1} borderRadius="md" mt={2}>
-<<<<<<< HEAD
-                <Text><strong>Input:</strong> {testCase.input}</Text>
-                <Text><strong>Expected Output:</strong> {testCase.output}</Text>
-=======
                 <Text>
                   <strong>Input:</strong> {testCase.input}
                 </Text>
                 <Text>
                   <strong>Expected Output:</strong> {testCase.output}
                 </Text>
->>>>>>> a24dc1c (Made some changes)
               </Box>
             ))}
           </Box>
         </VStack>
         <VStack align="start" spacing={4} w="60%" pl={4}>
           <Select
-<<<<<<< HEAD
-            value={language}
-            onChange={e => setLanguage(e.target.value)}
-            placeholder="Select Language"
-            mt={4}
-            w="100%"
-          >
-            <option value="javascript">JavaScript</option>
-            <option value="python">Python</option>
-            {/* Add more languages as needed */}
-          </Select>
-          <Box w="100%" borderWidth={1} borderRadius="lg" overflow="hidden" mt={4} bg="black">
-            <Editor
-              value={code}
-              onValueChange={code => setCode(code)}
-              highlight={code => highlight(code, languages[language])}
-              padding={10}
-              style={{
-                fontFamily: '"Fira code", "Fira Mono", monospace',
-                fontSize: 14,
-                backgroundColor: "#2D2D2D",
-                color: "#F8F8F2",
-                minHeight: "300px",
-                lineHeight: "1.5",
-=======
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
             placeholder="Select Theme"
@@ -206,7 +132,6 @@ const ProgrammingAssignment = () => {
                 fontFamily: '"Fira code", "Fira Mono", monospace',
                 fontSize: 14,
                 lineNumbers: "on",
->>>>>>> a24dc1c (Made some changes)
               }}
             />
           </Box>
@@ -220,17 +145,6 @@ const ProgrammingAssignment = () => {
           >
             Run
           </Button>
-<<<<<<< HEAD
-          {result && (
-            <Alert status="success" mt={4} w="100%">
-              <AlertIcon />
-              {result}
-            </Alert>
-          )}
-          {isRunning && (
-            <Spinner size="xl" mt={4} />
-          )}
-=======
           <Box
             w="100%"
             borderWidth={1}
@@ -246,7 +160,6 @@ const ProgrammingAssignment = () => {
             {typeof result === 'string' ? result : JSON.stringify(result, null, 2)}
             {isRunning && <Spinner size="xl" />}
           </Box>
->>>>>>> a24dc1c (Made some changes)
         </VStack>
       </Flex>
     </Flex>
