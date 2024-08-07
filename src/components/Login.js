@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React from 'react';
-=======
 import React, { useState } from 'react';
->>>>>>> main
 import {
   Box,
   Button,
@@ -18,10 +14,6 @@ import {
   Link,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-<<<<<<< HEAD
-import { useState } from 'react';
-=======
->>>>>>> main
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -38,26 +30,17 @@ const Login = () => {
       const response = await axios.post('http://127.0.0.1:5000/login', { email, password });
       if (response.status === 200) {
         toast({
-<<<<<<< HEAD
-          title: 'Login successful.',
-          description: "You've successfully logged in.",
-=======
           title: response.data.is_admin ? 'Admin login successful.' : 'Login successful.',
           description: response.data.is_admin ? 'Welcome, Admin!' : "You've successfully logged in.",
->>>>>>> main
           status: 'success',
           duration: 5000,
           isClosable: true,
         });
-<<<<<<< HEAD
-        navigate('/dashboard');
-=======
         if (response.data.is_admin) {
           navigate('/admin-dashboard');
         } else {
           navigate('/dashboard');
         }
->>>>>>> main
       }
     } catch (error) {
       toast({
