@@ -32,8 +32,9 @@ const RateVideoModal = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:5000/submit_rating', {
+      const response = await axios.post('http://127.0.0.1:5000/api/submit_rating', {
         user_id: 1,  // Replace with actual user ID
+        lesson_id: 1,  // Replace with actual lesson ID
         audio: ratings.audio,
         video: ratings.video,
         content: ratings.content,
