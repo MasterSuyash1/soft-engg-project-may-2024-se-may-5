@@ -33,7 +33,7 @@ CORS(app)  # Enable CORS for all routes
 Misaka(app)
 # Configure the Google Gemini API
 
-api_key = 'AIzaSyC6www5ebwMC2Mpvb0WnZCzgPwzxMO4j-g'
+api_key = 'AIzaSyCdW4j1sQe9ER9WpMREN_JljqTlnxIHnZI'
 genai.configure(api_key=api_key)
 
 app.secret_key = 'your_secret_key'
@@ -1324,7 +1324,7 @@ def generate_sample_data():
 
     lesson1_week1 = Lesson(course_id=1, week_id=1,
                            lesson_topic="Variables and Data Types",
-                           lecture_video_url="http://example.com/variables")
+                           lecture_video_url="https://youtube.com/watch?v=Yg6xzi2ie5s")
     lesson2_week1 = Lesson(course_id=1, week_id=1,
                            lesson_topic="Conditional Statements",
                            lecture_video_url="http://example.com/conditions")
@@ -1344,7 +1344,7 @@ def generate_week1_questions():
     lesson1_id = 1  # Assume the lesson ID is 1 for "Variables and Data Types"
     questions_lesson1 = [
         {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
+            "question_type_aq_pm_pp_gp_gq": "AQ",
             "question": "What is a variable in Python?",
             "question_type_mcq_msq": "MCQ",
             "option_1": "A container for storing data values",
@@ -1355,7 +1355,7 @@ def generate_week1_questions():
             "marks": 3
         },
         {
-            "question_type_aq_pm_pp_gp_gq": "GQ",
+            "question_type_aq_pm_pp_gp_gq": "AQ",
             "question": "Which of the following is a valid variable name in Python?",
             "question_type_mcq_msq": "MCQ",
             "option_1": "123variable",
