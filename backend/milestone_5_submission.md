@@ -239,6 +239,7 @@ Tests whether the app correctly rejects the submission of content ratings by a u
             assert response.status_code == 400, "Invalid user_id got accepted"
         ```
     - Screenshot of the Issue:
+    ![Image of invalid user_id getting accepted](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Invalid%20Ratings%20got%20accepted.png)
 
 2. ```def test_submit_ratings_invalid_inputs()```
 Tests whether the app correctly rejects the incompatible inputs for the user rating
@@ -267,6 +268,8 @@ Tests whether the app correctly rejects the incompatible inputs for the user rat
             assert response.status_code == 400, "Float rating did not get rejected"
         ```
     - Screenshot of the Issue:
+    ![Image of invalid user_id getting accepted](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Invalid%20Ratings%20got%20accepted.png)
+
      
 3. ```def test_submit_ratings_successful()```
 Tests whether the app correctly accepts the content ratings when passed valid inputs
@@ -573,6 +576,7 @@ Tests whether the application correctly returns a 404 error if a given week_id i
             assert response.status_code == 404
         ```
     - Screenshot of the Issue:
+    ![Image of incorrect status codes issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Incorrect%20Status%20Codes.png)
     
 ### Endpoint
 - **URL:** ```http://127.0.0.1:5000/api/graded/quiz/{week_id}```
@@ -622,7 +626,7 @@ Tests whether the app correctly returns not found error when passed inccorect
             assert response.status_code in [400, 404]
         ```
    - Screenshot of the Issue:
-
+    ![Image of incorrect status codes issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Incorrect%20Status%20Codes.png)
 
 # Programming Questions API 
 
@@ -894,6 +898,7 @@ Tests whether the app correctly rejects empty/missing inputs for weekly performa
             assert response.status_code in [ 400 ], "Missing week_no failed"
         ```
     - Screenshot of the Issue:
+    ![Screenshot of the missing input in performance issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Weekly%20Performance%20500%20Error.png)
 
 2. ```def test_weekly_performance_invalid_inputs()```
 Tests whether the app correctly rejects invalid inputs such as user_id and week_no for weekly performance report
