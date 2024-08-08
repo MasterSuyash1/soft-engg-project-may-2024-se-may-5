@@ -91,7 +91,7 @@ Tests whether the application correctly rejects invalid empty inputs during user
             assert response.status_code == 400
         ```
     - Screenshot of Issue:
-    - 
+          ![Screenshot of Empty Inputs Issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Empty%20input%20in%20registration.png)
     
 2. ```def test_signup_invalid_input()``` 
 Tests whether the app correctly rejects invalid inputs such as invalid email or username during user registration
@@ -109,6 +109,8 @@ Tests whether the app correctly rejects invalid inputs such as invalid email or 
             response = requests.post(f"{BASE_URL}/signup", json=data)
             assert response.status_code == 400, "Invalid username got accepted"
         ```
+    - Screenshot of Issue:
+          ![Screenshot of Empty Inputs Issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Floating%20Number%20in%20Username.png)
 
 3. ```def test_signup_duplicate_email()```
 Tests whether the app correctly handles rejecting duplicate email during user registration
@@ -126,6 +128,8 @@ Tests whether the app correctly handles rejecting duplicate email during user re
             response = requests.post(f"{BASE_URL}/signup", json=data)
             assert response.status_code in [400, 409]
         ```
+    - Screenshot of the Issue:
+    ![Screenshot of Duplicate email](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Duplicate%20email.png)
 
 4. ```def test_signup_successful()```
 Tests whether the user can successfully signup after passing valid inputs
@@ -164,7 +168,6 @@ Tests whether the app correctly refutes empty inputs when the user tries to logi
             response = requests.post(f"{BASE_URL}/login", json=data)
             assert response.status_code == 400
         ```
-    - Screenshot of the Issue:
 
 2. ```def test_login_invalid_credentials()```
 Tests whether the app correctly rejects invalid username-password combination when the user tries to login
