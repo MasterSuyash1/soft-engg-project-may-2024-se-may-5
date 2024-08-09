@@ -441,7 +441,7 @@ Tests whether the app correctly returns a response from the GenAI model when a v
         ```
 
 ### Endpoint:
-- **URL:** ```http://127.0.0.1:5000/api/sentiment_analysis
+- **URL:** ```http://127.0.0.1:5000/api/sentiment_analysis```
 - **Method:** POST
 
 1. ```def test_sentiment_analysis_successful()```
@@ -585,7 +585,7 @@ Tests whether the application correctly returns a 404 error if a given week_id i
 - **Method**: POST
 
 1. ```test_graded_questions_submissions_successful()```
-Tests whether the app correctly accepts a graded submission and returns solutions along with explanations for incorrect answers
+Tests whether the app correctly accepts a graded submission and returns solutions along with explanations for incorrect answers.
     - Passed Inputs:
         - ```{"week_id" : 1, "answers": { "0": "answer", "1" : "wronganswer", "user_id" : 1 }}```
     - Expected Output:
@@ -610,7 +610,7 @@ Tests whether the app correctly accepts a graded submission and returns solution
     
 
 2. ```test_graded_questions_submission_invalid_input()```
-Tests whether the app correctly returns not found error when passed inccorect
+Tests whether the app correctly returns not found error when passed invalid inputs.
     - Passed Inputs:
         - ```{"week_id" : 1, "answers": { "0": "answer", "1" : "wronganswer", "user_id" : 99999 }}```
     - Expected Output:
@@ -631,13 +631,14 @@ Tests whether the app correctly returns not found error when passed inccorect
     ![Image of incorrect status codes issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Incorrect%20Status%20Codes.png)
 
 # Programming Questions API 
+**Description:** These APIs have functionality related to generation of Programming Questions from the database for student's testing. Complilation of the code upon submission, testing private test cases and scoring. There is also a component to get hint/code explanation and efficient code from GenAI model.
 
 ### Endpoint
 - **URL:** ```http://127.0.0.1:5000/api/compile```
 - **Method:** POST
 
 1. ```def test_compile_code_successful()```
-Tests whether the app correctly compiles a valid python code
+Tests whether the app correctly compiles a valid python code submitted by the student/client.
     - Passed Inputs:
         - 
         ``` 
@@ -711,7 +712,7 @@ Tests whether the app correctly identifies errors in code such as syntax error p
 - **Method:** POST
 
 1. ```def test_submit_code_erroneous_code()```
-Tests whether the app correctly identifies errors such as name error in the code passed by the client when submitting the code, and verifies that the private test cases are not passed
+Tests whether the app correctly identifies errors such as name error in the code passed by the student/client when submitting the code, and verifies that the private test cases are not passed.
 
     - Passed Inputs:
         - 
@@ -798,7 +799,7 @@ Tests whether the app correctly accepts a correct programming code submitted by 
         ```
     
 ### Endpoint:
-- **URL:** ```http://127.0.0.1:5000/api/explainCode
+- **URL:** ```http://127.0.0.1:5000/api/explainCode```
 - **Method:** Post
 
 1. ```def test_generate_hint_successful()```
@@ -835,11 +836,11 @@ Tests whether the app correctly responds with a hint from GenAI model to a progr
 
     
 ### Endpoint:
-- **URL:** ```http://127.0.0.1:5000/api/getEfficientCode
+- **URL:** ```http://127.0.0.1:5000/api/getEfficientCode```
 - **Method:** Post
 
 1. ```def test_efficient_solution_invalid_inputs()```
-Tests whether the app correctly rejects invalid inputs when requesting efficient code solution from GenAI model by the student/client.
+Tests whether the app correctly rejects invalid inputs when requesting efficient programming code solution from GenAI model by the student/client.
     - Passed Inputs:
         - ```{ "question_id": 99999 }```
     - Expected Output:
@@ -857,7 +858,7 @@ Tests whether the app correctly rejects invalid inputs when requesting efficient
 
     
 2. ```def test_efficient_solution_successful()```
-Tests whether the app correctly returns an efficient solution form GenAI model to the programming problem statement when requested by the student/client.
+Tests whether the app correctly returns an efficient programming code solution from GenAI model when requested by the student/client.
     - Passed Inputs:
         - ```{ "question_id": 1 }```
     - Expected Output:
@@ -877,13 +878,14 @@ Tests whether the app correctly returns an efficient solution form GenAI model t
 
 
 # Weekly Performance API
+**Description:** These APIs have functionality related to generation of Student Weekly Performance report from GenAI model.
 
 ### Endpoint:
 - **URL:** ```http://127.0.0.1:5000/api/weekly_performance_analysis```
 - **Method:** POST
 
 1. ```def test_weekly_performance_empty_inputs()```
-Tests whether the app correctly rejects empty/missing inputs for weekly performance report
+Tests whether the app correctly rejects empty/missing inputs for weekly performance report.
     
     - Passed Inputs:
         - ``` {"user_id" : 1} # missing week_no ```
@@ -903,7 +905,7 @@ Tests whether the app correctly rejects empty/missing inputs for weekly performa
     ![Screenshot of the missing input in performance issue](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Weekly%20Performance%20500%20Error.png)
 
 2. ```def test_weekly_performance_invalid_inputs()```
-Tests whether the app correctly rejects invalid inputs such as user_id and week_no for weekly performance report
+Tests whether the app correctly rejects invalid inputs such as user_id and week_no for weekly performance report.
     - Passed Inputs:
         - ```{"user_id" : -1, "week_no":1}```
     - Expected Output:
@@ -920,7 +922,7 @@ Tests whether the app correctly rejects invalid inputs such as user_id and week_
         ```
 
 3. ```def test_weekly_performance_successful_generation()```
-Tests whether the app returns the user weekly performance report successfully, and returns the SWOT analysis using GenAI
+Tests whether the app returns the user weekly performance report successfully, and returns the SWOT analysis using GenAI model.
     - Passed Inputs:
         - ```{"user_id" : 1, "week_no":1}```
     - Expected Output:
@@ -949,7 +951,7 @@ Tests whether the app returns the user weekly performance report successfully, a
         ```
 
 4. ```def test_weekly_performance_successful_user_not_found()```
-Tests whether the app correctly returns not found for a user for weekly performance report
+Tests whether the app correctly returns 'not found' for a user not in the database for weekly performance report.
     - Passed Inputs:
         - ```{"user_id" : 99999, "week_no":1}```
     - Expected Output:
