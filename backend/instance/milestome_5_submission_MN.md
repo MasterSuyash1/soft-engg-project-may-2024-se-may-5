@@ -517,7 +517,86 @@ Tests getting activity questions successfully
         ```
 
 ### Endpoint
-- **URL:** ```http://127.0.0.1:5000/api/activity/extra_questions/{lesson_id}```
+- **URL:** ```http://127.0.0.1:5000/api/activity/quiz/<int:lesson_id>```
+- **Method:** POST
+
+1. ```def test_post_activity_questions_successful()```
+Tests whether the activity questions can be submitted successfully
+    - Passed Inputs:
+          ```
+          { "user_id":1, "answers" : { str(0): "answer", str(1) : "wronganswer" }}
+          ```
+    - Expected Output:
+        - 
+        ```
+        HTTTP-Status Code: 200
+        JSON Parameter "results"
+        ```
+    - Actual Output:
+        - 
+        ```
+        HTTTP-Status Code: 200
+        JSON Parameter "results"
+        ```
+    - Result: 
+        - ```Passed```
+    - Pytest Code:
+        ```
+        def test_post_activity_questions_successful():
+            lesson_id = 1
+            response = requests.post(f"{BASE_URL}/api/activity/quiz/{lesson_id}", json=data)
+            assert response.status_code == 200
+            assert response.json()["results"]
+            
+            response_json = response.json()
+
+            incorrect_answers = [ response_json['results'][i] for i in range(len(response_json['results'])) if not response_json['results'][i]['is_correct']] 
+            if len(incorrect_answers) > 0:
+                assert incorrect_answers[0]['explanation']
+        ```
+
+2. ```def test_post_activity_questions_invalid_user_id()```
+Tests whether the app returns not found error or bad request error when the user_id is incorrectly given
+    - Passed Inputs:
+          ```
+          { "user_id":99999, "answers" : { str(0): "answer", str(1) : "wronganswer" }}
+          ```
+    - Expected Output:
+        - ```HTTTP-Status Code: 400``` or ```404```
+    - Actual Output:
+        -```HTTTP-Status Code: 200```
+    - Result: 
+        - ```Failed```
+    - Pytest Code:
+        ```
+        def test_post_activity_questions_invalid_user_id():
+            lesson_id = 1
+            response = requests.post(f"{BASE_URL}/api/activity/quiz/{lesson_id}", json=data)
+            assert response.status_code == 404
+        ```
+
+3. ```def test_post_activity_questions_invalid_lesson_id()```
+Tests whether the app returns not found error or bad request error when the lesson_id is incorrectly given
+    - Passed Inputs:
+          ```
+          { "user_id":1, "answers" : { str(0): "answer", str(1) : "wronganswer" }}
+          ```
+    - Expected Output:
+        - ```HTTTP-Status Code: 404```
+    - Actual Output:
+        -```HTTTP-Status Code: 404```
+    - Result: 
+        - ```Passed```
+    - Pytest Code:
+        ```
+        def test_post_activity_questions_invalid_lesson_id():
+            lesson_id = 99999
+            response = requests.post(f"{BASE_URL}/api/activity/quiz/{lesson_id}", json=data)
+            assert response.status_code == 404
+        ```
+
+### Endpoint
+- **URL:** ```http://127.0.0.1:5000/api/activity/extra_questions/<int:lesson_id>```
 - **Method**: GET
 
 1. ```def test_get_extra_questions_successful()```
