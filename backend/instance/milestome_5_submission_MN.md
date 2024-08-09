@@ -454,8 +454,8 @@ Tests whether the app correctly returns the sentiment analysis from the GenAI mo
             assert isinstance(response.json()["lecture_feedback_summaries"], list)
         ```
 
-# Activity Questions API
-**Description:** These APIs have functionality related to generation of Activity Questions from the database for student's testing. There is also a component to fetch explanation from GenAI for incorrect answers. 
+# Activity and Extra Questions API
+**Description:** These APIs have functionality related to generation of Activity Questions from the database for student's testing to fetch explanation from GenAI for incorrect answers. The API also contains functionality to generate Extra Practice questions using GenAI Model.
 
 ### Endpoint
 - **URL:** ```http://127.0.0.1:5000/api/activity/quiz/<int:lesson_id>```
@@ -520,7 +520,7 @@ Tests getting activity questions successfully
 - **Method:** POST
 
 1. ```def test_post_activity_questions_successful()```
-Tests whether the activity questions can be submitted successfully
+Tests whether the activity questions solved by the student can be submitted successfully.
     - Passed Inputs:
           ```
           { "user_id":1, "answers" : { str(0): "answer", str(1) : "wronganswer" }}
@@ -555,7 +555,7 @@ Tests whether the activity questions can be submitted successfully
         ```
 
 2. ```def test_post_activity_questions_invalid_user_id()```
-Tests whether the app returns not found error or bad request error when the user_id is incorrectly given
+Tests whether the app returns not found error or bad request error when the user_id is incorrectly given.
     - Passed Inputs:
           ```
           { "user_id":99999, "answers" : { str(0): "answer", str(1) : "wronganswer" }}
@@ -575,7 +575,7 @@ Tests whether the app returns not found error or bad request error when the user
         ```
 
 3. ```def test_post_activity_questions_invalid_lesson_id()```
-Tests whether the app returns not found error or bad request error when the lesson_id is incorrectly given
+Tests whether the app returns not found error or bad request error when the lesson_id is incorrectly given.
     - Passed Inputs:
           ```
           { "user_id":1, "answers" : { str(0): "answer", str(1) : "wronganswer" }}
@@ -599,7 +599,7 @@ Tests whether the app returns not found error or bad request error when the less
 - **Method**: GET
 
 1. ```def test_get_extra_questions_successful()```
-Tests whether the app correctly fetches extra questions from GenAI when prompted by the user
+Tests whether the app correctly fetches extra questions from GenAI model when prompted by the student/client.
     - Passed Inputs:
         - ``` ```
     - Expected Output:
@@ -611,12 +611,12 @@ Tests whether the app correctly fetches extra questions from GenAI when prompted
     - Pytest Code:
         ```
         def test_get_activity_questions_successful():
-                lesson_id = 1
-                response = requests.get(f"{BASE_URL}/api/activity/extra_questions/{lesson_id}")
-                assert response.status_code == 200
+            lesson_id = 1
+            response = requests.get(f"{BASE_URL}/api/activity/extra_questions/{lesson_id}")
+            assert response.status_code == 200
         ```
 2. ```def test_get_extra_questions_not_found()```
-Tests whether the app correctly returns not found error during generating extra questions when given incorrect lesson_id
+Tests whether the app correctly returns not found error during generating extra questions when given incorrect lesson_id.
     - Passed Inputs:
         - ``` ```
     - Expected Output:
@@ -628,9 +628,9 @@ Tests whether the app correctly returns not found error during generating extra 
     - Pytest Code:
         ```
         def test_get_activity_questions_successful():
-                lesson_id = 99999
-                response = requests.get(f"{BASE_URL}/api/activity/extra_questions/{lesson_id}")
-                assert response.status_code == 404
+            lesson_id = 99999
+            response = requests.get(f"{BASE_URL}/api/activity/extra_questions/{lesson_id}")
+            assert response.status_code == 404
         ```
 
 # Graded Questions API
