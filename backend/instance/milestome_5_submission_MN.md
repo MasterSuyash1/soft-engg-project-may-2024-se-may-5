@@ -252,7 +252,7 @@ Tests whether the app correctly rejects the incompatible inputs for the user rat
           "video": 4,
           "content": 4,
           "feedback": "Excellent tutorial!",
-        }
+          }
           ```
     - Expected Output:
         - ```HTTTP-Status Code: 400```
