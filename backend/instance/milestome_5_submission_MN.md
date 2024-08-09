@@ -1,5 +1,5 @@
 # User API Tests
-**Description:** These APIs have functionality related to features such as registration, login, and retrieval of user data
+**Description:** These APIs have functionality related to features such as registration, login, and retrieval of user data. They are for normal and other functionalities.
 
 ### Endpoint: 
 - **URL:** ```http://127.0.0.1:5000/api/users/{user_id}```
@@ -207,14 +207,14 @@ Tests whether the app lets the user log in if he gives correct credentials
 
 
 # Lectures API Tests
-**Description:** These APIs are for the functionalities related to lecture content such as submitting feedback, generating transcript, chatbot with GenAI, and sentiment analysis using GenAI. 
+**Description:** These APIs are for the functionalities related to lecture video content such as submitting feedback and generating transcript. API's for chatbot using GenAI and generating sentiment analysis using GenAI. 
 
 ### Endpoint:
 - **URL:** ```http://127.0.0.1:5000/api/submit_rating```
 - **Method:** POST
 
 1. ```def test_submit_ratings_invalid_id()```
-Tests whether the app correctly rejects the submission of content ratings by a user who is not in the database
+Tests whether the app correctly rejects the submission of lecture video content ratings by a user who is not in the database
     - Passed Inputs:
         - ```
           {
@@ -242,7 +242,7 @@ Tests whether the app correctly rejects the submission of content ratings by a u
     ![Image of invalid user_id getting accepted](https://github.com/MasterSuyash1/soft-engg-project-may-2024-se-may-5/blob/main/Issue%20Screenshot/Invalid%20Ratings%20got%20accepted.png)
 
 2. ```def test_submit_ratings_invalid_inputs()```
-Tests whether the app correctly rejects the incompatible inputs for the user rating
+Tests whether the app correctly rejects the incompatible inputs for the user rating 
     - Passed Inputs:
         - ```
           {
@@ -272,7 +272,7 @@ Tests whether the app correctly rejects the incompatible inputs for the user rat
 
      
 3. ```def test_submit_ratings_successful()```
-Tests whether the app correctly accepts the content ratings when passed valid inputs
+Tests whether the app correctly accepts the lecture video content ratings when passed valid inputs
     - Passed Inputs:
         - ```
           {
@@ -304,7 +304,7 @@ Tests whether the app correctly accepts the content ratings when passed valid in
 - **Method:** POST
 
 1. ```def test_lesson_transcript_invalid_inputs()```
-Tests whether the app correctly rejects invalid lesson_id, such as an empty lesson_id, when generating lesson transcripts
+Tests whether the app correctly rejects invalid lesson_id, such as an empty lesson_id when generating video lecture transcripts for the lesson.
     - Passed Inputs:
         - 
         ``` 
@@ -324,7 +324,7 @@ Tests whether the app correctly rejects invalid lesson_id, such as an empty less
         ```
 
 2. ```def test_lesson_transcript_not_found()```
-Tests whether the app correctly returns not found when the lesson_id is not found in the database
+Tests whether the app correctly returns 'not found' error when the lesson_id is not found in the database when generating video lecture transcripts for the lesson.
     - Passed Inputs:
         - 
         ```
@@ -379,7 +379,7 @@ Tests whether the app correctly returns not found when the lesson_id is not foun
 - **Method:** POST
 
 1. ```def test_chat_api_empty_chat_message()```
-Tests whethet the app correctly rejects accepting no inputs as message from the user during chat
+Tests whether the app correctly rejects no inputs in message from the user during chat with chatbot using GenAI.
     - Passed Inputs:
         - ```            
         { "session_id": 1 , "message": ""} # message not there```
@@ -397,7 +397,7 @@ Tests whethet the app correctly rejects accepting no inputs as message from the 
         ```
 
 2. ```def test_chat_api_empty_session_id()```
-Tests whether the app correctly creates a session_id internally when a session_id is not provided in the chat
+Tests whether the app correctly creates a session_id internally when a session_id is not provided as input to the chat API.
     - Passed Inputs:
         - ``` ```
     - Expected Output:
@@ -419,7 +419,7 @@ Tests whether the app correctly creates a session_id internally when a session_i
         ```
 
 3. ```def test_chat_api_successful()```
-Tests whether the app correctly returns a response from the GenAI model when the message is passed in the chat
+Tests whether the app correctly returns a response from the GenAI model when a valid message (not blank) from the student is passed in the chat.
     - Passed Inputs:
         - ``` ```
     - Expected Output:
@@ -445,7 +445,7 @@ Tests whether the app correctly returns a response from the GenAI model when the
 - **Method:** POST
 
 1. ```def test_sentiment_analysis_successful()```
-Tests whether the app correctly returns the sentiment analysis from the GenAI model 
+Tests whether the app correctly returns the sentiment analysis from the GenAI model for the feedbacks submitted by the students about the quality of lecture videos. 
     - Passed Inputs:
         - ``` ```
     - Expected Output:
@@ -466,6 +466,7 @@ Tests whether the app correctly returns the sentiment analysis from the GenAI mo
         ```
 
 # Activity Questions API
+**Description:** These APIs have functionality related generation of Activity and 
 
 ### Endpoint
 - **URL:**
@@ -533,6 +534,7 @@ Tests getting activity questions successfully
 
 
 # Graded Questions API
+**Description:** These APIs have functionality related to features such as registration, login, and retrieval of user data. They are for normal and other functionalities.
 
 ### Endpoint
 - **URL:** ```http://127.0.0.1:5000/api/graded/quiz/{week_id}```
