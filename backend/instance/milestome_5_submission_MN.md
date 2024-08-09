@@ -516,6 +516,44 @@ Tests getting activity questions successfully
             assert response.status_code == 200
         ```
 
+### Endpoint
+- **URL:** ```http://127.0.0.1:5000/api/activity/extra_questions/{lesson_id}```
+- **Method**: GET
+
+1. ```def test_get_extra_questions_successful()```
+Tests whether the app correctly fetches extra questions from GenAI when prompted by the user
+    - Passed Inputs:
+        - ``` ```
+    - Expected Output:
+        - ```HTTTP-Status Code: 200```
+    - Actual Output:
+        - ```HTTP-Status Code: 200```
+    - Result: 
+        - ```Passed```
+    - Pytest Code:
+        ```
+        def test_get_activity_questions_successful():
+                lesson_id = 1
+                response = requests.get(f"{BASE_URL}/api/activity/extra_questions/{lesson_id}")
+                assert response.status_code == 200
+        ```
+2. ```def test_get_extra_questions_not_found()```
+Tests whether the app correctly returns not found error during generating extra questions when given incorrect lesson_id
+    - Passed Inputs:
+        - ``` ```
+    - Expected Output:
+        - ```HTTTP-Status Code: 404```
+    - Actual Output:
+        - ```HTTP-Status Code: 404```
+    - Result: 
+        - ```Passed```
+    - Pytest Code:
+        ```
+        def test_get_activity_questions_successful():
+                lesson_id = 99999
+                response = requests.get(f"{BASE_URL}/api/activity/extra_questions/{lesson_id}")
+                assert response.status_code == 404
+        ```
 
 # Graded Questions API
 **Description:** These APIs have functionality related to generation of Graded Questions from the database for student's testing. There is also a component to fetch explanation from GenAI for incorrect answers.
