@@ -263,7 +263,6 @@ Tests whether the app correctly rejects the incompatible inputs for the user rat
     - Pytest Code:
         ```
         def test_submit_ratings_invalid_input():
-            """
             response = requests.post(f"{BASE_URL}/api/submit_rating", json=data)
             assert response.status_code == 400, "Float rating did not get rejected"
         ```
@@ -282,7 +281,7 @@ Tests whether the app correctly accepts the lecture video content ratings when p
           "video": 4,
           "content": 4,
           "feedback": "Excellent tutorial!",
-        }
+          }
           ```
     - Expected Output:
         - ```HTTTP-Status Code: 200```
@@ -294,7 +293,6 @@ Tests whether the app correctly accepts the lecture video content ratings when p
         ```
         def test_submit_ratings_successful():
             response = requests.post(f"{BASE_URL}/api/submit_rating", json=data)
-
             assert response.status_code == 201
             assert str(response.json()["message"]).upper() == "RATING SUBMITTED SUCCESSFULLY"
         ```
@@ -340,7 +338,6 @@ Tests whether the app correctly returns 'not found' error when the lesson_id is 
         ```
             def test_lesson_transcript_not_found():
                 response = requests.get(f"{BASE_URL}/api/transcript_notes/{lesson_id}")
-
                 assert response.status_code == 404
         ```
 
@@ -411,9 +408,6 @@ Tests whether the app correctly creates a session_id internally when a session_i
     - Pytest Code:
         ```
         def test_chat_api_empty_session_id():
-            """
-            Tests whether the app correctly creates session_id internally when a session_id is not provided in the chat
-            """
             data = {"message": "Explain what hashing is to me.", "session_id": None} # session_id is not there
             response = requests.post(f"{BASE_URL}/api/chat", json=data)
             assert response.status_code == 200
@@ -433,9 +427,6 @@ Tests whether the app correctly returns a response from the GenAI model when a v
     - Pytest Code:
         ```
         def test_chat_api_successful():
-            """
-            Tests whether the app correctly returns a response from the GenAI model when message is passed in the chat
-            """
             data = {"message": "Explain what hashing is to me.", "session_id": 1} 
             response = requests.post(f"{BASE_URL}/api/chat", json=data)
             assert response.status_code == 200
@@ -459,9 +450,6 @@ Tests whether the app correctly returns the sentiment analysis from the GenAI mo
     - Pytest Code:
         ```
         def test_sentiment_analysis_successful():
-            """
-            Tests whether the app correctly returns the sentiment analysis from the GenAI model 
-            """
             response = requests.post(f"{BASE_URL}/api/sentiment_analysis")
             assert response.status_code == 200
             assert isinstance(response.json()["lecture_feedback_summaries"], list)
@@ -487,9 +475,6 @@ Tests getting activity questions with invalid inputs
     - Pytest Code:
         ```
         def test_get_activity_questions_invalid_inputs():
-            """
-            Tests getting activity questions with invalid inputs
-            """
             lesson_id = -1 # lesson doesn't exist
             response = requests.get(f"{BASE_URL}/api/activity/quiz/{lesson_id}")
             assert response.status_code in [ 400, 404], "lesson_id not found failed"
@@ -508,9 +493,6 @@ Tests getting activity questions with invalid inputs
     - Pytest Code:
         ```
         def test_get_activity_questions_empty_inputs():
-            """
-            Tests getting activity questions with empty inputs
-            """
             lesson_id = ""
             response = requests.get(f"{BASE_URL}/api/activity/quiz/{lesson_id}")
             assert response.status_code == 404, "Empty lesson_id failed"
@@ -602,9 +584,7 @@ Tests whether the app correctly accepts a graded submission and returns solution
             response = requests.post(f"{BASE_URL}/api/graded/quiz/{week_id}", json=data)
             assert response.status_code == 200
             assert response.json()["results"]
-            
             response_json = response.json()
-
             incorrect_answers = [ response_json['results'][i] for i in range(len(response_json['results'])) if not response_json['results'][i]['is_correct']] 
             if len(incorrect_answers) > 0:
                 assert incorrect_answers[0]['explanation']
