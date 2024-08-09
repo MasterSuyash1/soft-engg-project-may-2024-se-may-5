@@ -466,7 +466,7 @@ Tests whether the app correctly returns the sentiment analysis from the GenAI mo
         ```
 
 # Activity Questions API
-**Description:** These APIs have functionality related generation of Activity and 
+**Description:** These APIs have functionality related to generation of Activity Questions from the database for student's testing. There is also a component to fetch explanation from GenAI for incorrect answers. 
 
 ### Endpoint
 - **URL:**
