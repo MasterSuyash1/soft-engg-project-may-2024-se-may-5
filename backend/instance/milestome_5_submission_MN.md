@@ -358,13 +358,15 @@ Tests whether the app correctly returns 'not found' error when the lesson_id is 
         JSON Parameter "notes"
         ```
     - Actual Output:
-        - ```
+        - 
+        ```
         HTTTP-Status Code: 200
         JSON Parameter "transcript_text"
         JSON Parameter "notes"
         ```
     - Result: 
-        - ```Passed```
+        -
+        ```Passed```
     - Pytest Code:
         ```
         def test_lesson_transcript_successful():
@@ -778,7 +780,8 @@ Tests whether the app correctly accepts a correct programming code submitted by 
         }
         ```
     - Expected Output:
-        - ```
+        -
+        ```
         HTTTP-Status Code: 200
         "score": 1
         ```
@@ -820,7 +823,8 @@ Tests whether the app correctly responds with a hint from GenAI model to a progr
         A JSON Parameter: "hint"
         ```
     - Actual Output:
-        - ```
+        -     
+        ```
         HTTP-Status Code: 200
         Json Parameter: "hint"
         ```
