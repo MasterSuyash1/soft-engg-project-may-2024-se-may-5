@@ -469,8 +469,8 @@ Tests whether the app correctly returns the sentiment analysis from the GenAI mo
 **Description:** These APIs have functionality related to generation of Activity Questions from the database for student's testing. There is also a component to fetch explanation from GenAI for incorrect answers. 
 
 ### Endpoint
-- **URL:**
-- **Method:**
+- **URL:** ```http://127.0.0.1:5000/api/activity/quiz/<int:lesson_id>```
+- **Method:** GET
 
 1. ```def test_get_activity_questions_invalid_inputs()```
 Tests getting activity questions with invalid inputs
@@ -534,7 +534,7 @@ Tests getting activity questions successfully
 
 
 # Graded Questions API
-**Description:** These APIs have functionality related to features such as registration, login, and retrieval of user data. They are for normal and other functionalities.
+**Description:** These APIs have functionality related to generation of Graded Questions from the database for student's testing. There is also a component to fetch explanation from GenAI for incorrect answers.
 
 ### Endpoint
 - **URL:** ```http://127.0.0.1:5000/api/graded/quiz/{week_id}```
@@ -560,7 +560,7 @@ Tests whether the graded questions for a given week are correctly returned
         ```
 
 2. ```test_graded_questions_week_not_found()```
-Tests whether the application correctly returns a 404 error if a given week_id is not present when finding graded assignment questions
+Tests whether the application correctly returns a 404 error if a given week_id is not present when finding graded assignment questions.
 
     - Passed Inputs:
         - ```{"week_id" : 99999}```
@@ -755,7 +755,7 @@ Tests whether the app correctly identifies errors such as name error in the code
         ```
 
 2. ```def test_private_test_cases_successful()```
-Tests whether the app correctly accepts a correct code and correctly returns the score of the passed test cases
+Tests whether the app correctly accepts a correct programming code submitted by the student/client and correctly returns the score of the passed private test cases.
 
     - Passed Inputs:
         - 
@@ -802,7 +802,7 @@ Tests whether the app correctly accepts a correct code and correctly returns the
 - **Method:** Post
 
 1. ```def test_generate_hint_successful()```
-Tests whether the app correctly responds with a hint to a programming problem when requested
+Tests whether the app correctly responds with a hint from GenAI model to a programming problem when requested by the student/client. This is the Code Explainer feature of the user story.
     - Passed Inputs:
         - 
         ```
@@ -839,7 +839,7 @@ Tests whether the app correctly responds with a hint to a programming problem wh
 - **Method:** Post
 
 1. ```def test_efficient_solution_invalid_inputs()```
-Tests whether the app correctly rejects invalid inputs when requesting efficient code solution
+Tests whether the app correctly rejects invalid inputs when requesting efficient code solution from GenAI model by the student/client.
     - Passed Inputs:
         - ```{ "question_id": 99999 }```
     - Expected Output:
@@ -857,7 +857,7 @@ Tests whether the app correctly rejects invalid inputs when requesting efficient
 
     
 2. ```def test_efficient_solution_successful()```
-Tests whether the app correctly returns an efficient solution to the problem
+Tests whether the app correctly returns an efficient solution form GenAI model to the programming problem statement when requested by the student/client.
     - Passed Inputs:
         - ```{ "question_id": 1 }```
     - Expected Output:
