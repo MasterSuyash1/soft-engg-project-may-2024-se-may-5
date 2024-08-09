@@ -380,12 +380,11 @@ Tests whether the app correctly returns 'not found' error when the lesson_id is 
 1. ```def test_chat_api_empty_chat_message()```
 Tests whether the app correctly rejects no inputs in message from the user during chat with chatbot using GenAI.
     - Passed Inputs:
-        - ```            
-        { "session_id": 1 , "message": ""} # message not there```
+        - ```{ "session_id": 1 , "message": ""} # message not there```
     - Expected Output:
-        - ```HTTTP-Status Code: 400``` or ```415``` or ```500```
+        - ```HTTTP-Status Code: 400  # Bad Request```
     - Actual Output:
-        - ```HTTP-Status Code: 415```
+        - ```HTTP-Status Code: 500```
     - Result: 
         - ```Passed```
     - Pytest Code:
@@ -398,7 +397,7 @@ Tests whether the app correctly rejects no inputs in message from the user durin
 2. ```def test_chat_api_empty_session_id()```
 Tests whether the app correctly creates a session_id internally when a session_id is not provided as input to the chat API.
     - Passed Inputs:
-        - ``` ```
+        - ```{"message": "Explain what hashing is to me.", "session_id": None} # session_id is not there```
     - Expected Output:
         - ```HTTTP-Status Code: 200```
     - Actual Output:
@@ -417,7 +416,7 @@ Tests whether the app correctly creates a session_id internally when a session_i
 3. ```def test_chat_api_successful()```
 Tests whether the app correctly returns a response from the GenAI model when a valid message (not blank) from the student is passed in the chat.
     - Passed Inputs:
-        - ``` ```
+        - ```{"message": "Explain what hashing is to me.", "session_id": 1}```
     - Expected Output:
         - ```HTTTP-Status Code: 200```
     - Actual Output:
