@@ -90,8 +90,6 @@ Tests whether the application correctly rejects invalid empty inputs during user
             response = requests.post(f"{BASE_URL}/signup", json=data)
             assert response.status_code == 400
         ```
-    - Screenshot of Issue:
-          ![Screenshot of Empty Inputs Issue](https://drive.google.com/uc?id=1fTMU26X0RFB0dMXU1kgzgLX_ZH-m3WUl)
     
 2. ```def test_signup_invalid_input()``` 
 Tests whether the app correctly rejects invalid inputs such as invalid email or username during user registration
@@ -109,8 +107,6 @@ Tests whether the app correctly rejects invalid inputs such as invalid email or 
             response = requests.post(f"{BASE_URL}/signup", json=data)
             assert response.status_code == 400, "Invalid username got accepted"
         ```
-    - Screenshot of Issue:
-          ![Screenshot of Empty Inputs Issue](https://drive.google.com/uc?id=1rsGj4Qohb-22HsB9AcmbkhtHCENk8UYy)
 
 3. ```def test_signup_duplicate_email()```
 Tests whether the app correctly handles rejecting duplicate email during user registration
@@ -128,8 +124,6 @@ Tests whether the app correctly handles rejecting duplicate email during user re
             response = requests.post(f"{BASE_URL}/signup", json=data)
             assert response.status_code in [400, 409]
         ```
-    - Screenshot of the Issue:
-    ![Screenshot of Duplicate email](https://drive.google.com/uc?id=1G_8nDXawyLcqkHHn8lVNWhPxuNVqX5kj)
 
 4. ```def test_signup_successful()```
 Tests whether the user can successfully signup after passing valid inputs
@@ -238,8 +232,6 @@ Tests whether the app correctly rejects the submission of lecture video content 
             response = requests.post(f"{BASE_URL}/api/submit_rating", json=data)
             assert response.status_code == 400, "Invalid user_id got accepted"
         ```
-    - Screenshot of the Issue:
-    ![Image of invalid user_id getting accepted](https://drive.google.com/uc?id=19xcFy5PhDbSRRm3ziwlp5lwdiGJeolN2)
 
 2. ```def test_submit_ratings_invalid_inputs()```
 Tests whether the app correctly rejects the incompatible inputs for the user rating 
@@ -266,8 +258,6 @@ Tests whether the app correctly rejects the incompatible inputs for the user rat
             response = requests.post(f"{BASE_URL}/api/submit_rating", json=data)
             assert response.status_code == 400, "Float rating did not get rejected"
         ```
-    - Screenshot of the Issue:
-    ![Image of invalid user_id getting accepted](https://drive.google.com/uc?id=19xcFy5PhDbSRRm3ziwlp5lwdiGJeolN2)
 
      
 3. ```def test_submit_ratings_successful()```
@@ -677,8 +667,6 @@ Tests whether the application correctly returns a 404 error if a given week_id i
             response = requests.get(f'{BASE_URL}/api/graded/quiz/{week_id}')
             assert response.status_code == 404
         ```
-    - Screenshot of the Issue:
-    ![Image of incorrect status codes issue](https://drive.google.com/uc?id=1F39rO6SpIk6e0TcE0KD_aJ7SO53DbtsB)
     
 ### Endpoint
 - **URL:** ```http://127.0.0.1:5000/api/graded/quiz/{week_id}```
@@ -725,8 +713,6 @@ Tests whether the app correctly returns not found error when passed invalid inpu
             response = requests.post(f"{BASE_URL}/api/graded/quiz/{week_id}", json=data)
             assert response.status_code in [400, 404]
         ```
-   - Screenshot of the Issue:
-    ![Image of incorrect status codes issue](https://drive.google.com/uc?id=1F39rO6SpIk6e0TcE0KD_aJ7SO53DbtsB)
 
 # Programming Questions API 
 **Description:** These APIs have functionality related to generation of Programming Questions from the database for student's testing. Complilation of the code upon submission, testing private test cases and scoring. There is also a component to get hint/code explanation and efficient code from GenAI model.
@@ -1001,8 +987,6 @@ Tests whether the app correctly rejects empty/missing inputs for weekly performa
             response = requests.post(f"{BASE_URL}/api/weekly_performance_analysis", json=data)
             assert response.status_code in [ 400 ], "Missing week_no failed"
         ```
-    - Screenshot of the Issue:
-    ![Screenshot of the missing input in performance issue](https://drive.google.com/uc?id=1kYju8nAZBwId0aSpFGJwU5N3lEmUH7aj)
 
 2. ```def test_weekly_performance_invalid_inputs()```
 Tests whether the app correctly rejects invalid inputs such as user_id and week_no for weekly performance report.
