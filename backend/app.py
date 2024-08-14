@@ -31,8 +31,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)  # Enable CORS for all routes
 Misaka(app)
-# Configure the Google Gemini API
 
+# Configure the Google Gemini API
 api_key = 'AIzaSyCdW4j1sQe9ER9WpMREN_JljqTlnxIHnZI'
 genai.configure(api_key=api_key)
 
@@ -225,18 +225,6 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-# @app.route('/chat', methods=['POST'])
-# def chat():
-#     data = request.get_json()
-#     user_message = data.get('message')
-#     try:
-#         model = genai.GenerativeModel('gemini-1.5-flash')
-#         response = model.generate_content(user_message)
-#         bot_response = response.text
-#         formatted_response = ' '.join(bot_response.split())
-#         return jsonify({'response': formatted_response}), 200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/submit_rating', methods=['POST'])
 def submit_rating():
@@ -288,42 +276,6 @@ def delete_user(user_id):
         return jsonify({'message': 'User deleted successfully'}), 200
     else:
         return jsonify({'message': 'User not found'}), 404
-
-
-# @app.route('/api/sentiment_analysis', methods=['GET'])
-# def sentiment_analysis():
-#     try:
-#         ratings = Rating.query.all()
-#         feedback_list = [rating.feedback for rating in ratings if rating.feedback]
-        
-#         sentiments = []
-#         for feedback in feedback_list:
-#             prompt = f"""Tell me whether the following sentence's sentiment is positive or negative or something in between.
-#             Sentence {feedback}
-#             Sentiment"""
-#             response = genai.generate_text(
-#                 model='models/text-bison-001',
-#                 temperature=0.5,
-#                 candidate_count=1,
-#                 top_k=40,
-#                 top_p=0.95,
-#                 max_output_tokens=1024,
-#                 prompt=prompt
-#             )
-#             sentiment = response.result.strip().split('\n')[-1].strip()  # Extract sentiment
-#             sentiments.append({
-#                 'feedback': feedback,
-#                 'sentiment': sentiment
-#             })
-
-#         return jsonify(sentiments), 200
-#     except Exception as e:
-#         print(f"Error: {e}")  # Log the error to the console
-#         return jsonify({'error': str(e)}), 500
-
-# Add your code here Anuj,
-
-# Add your code here Asmita,
 
 
 def get_explanation(question, correct_answer):
@@ -1086,8 +1038,8 @@ def get_weekly_performance():
         return swot_analysis, 200
     except KeyError as e:
         return jsonify({"error": f"Missing key in request: {str(e)}"}), 400
-    # except Exception as e:
-    #     return jsonify({"error": f"INTERNAL SERVER ERROR: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"INTERNAL SERVER ERROR: {str(e)}"}), 500
     
 
 # ============================ Feedback Sentiment Analysis ==========================
