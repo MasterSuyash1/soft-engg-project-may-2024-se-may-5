@@ -782,13 +782,35 @@ def create_question():
     return jsonify({'message': 'Question created successfully', 'question_id': new_question.question_id}), 200
 
 
-# Add your code here Yadvendra
-
 # =================== Student Weekly Performance Analysis ================================
 
-def generate_swot_analysis(student_performance, lesson_topics, correct_attempts, incorrect_attempts):
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash",
-                              generation_config=genai.GenerationConfig(response_mime_type="application/json"))
+def generate_swot_analysis(student_performance: dict, lesson_topics: list, correct_attempts: list, incorrect_attempts: list):
+    """
+    Generates a SWOT analysis report based on student performance data.
+
+    This function uses an AI model to analyze student performance metrics, lesson topics, and attempts (both correct and incorrect) to produce a comprehensive SWOT analysis. 
+    The output follows a specified JSON schema.
+
+    Parameters:
+    --------------
+
+    - student_performance (dict): Dictionary containing performance scores and overall AI score.
+
+    - lesson_topics (list): List of topics covered in the lessons.
+
+    - correct_attempts (list): List of correctly attempted questions.
+
+    - incorrect_attempts (list): List of incorrectly attempted questions.
+
+    Returns:
+    - str: JSON string with SWOT analysis (strengths, weaknesses, opportunities, threats).
+    """
+
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        generation_config=genai.GenerationConfig(response_mime_type="application/json")
+    )
+
     required_response_schema = {
         "title": "SWOT Analysis Schema",
         "description": "Schema for representing a comprehensive SWOT analysis",
@@ -902,104 +924,188 @@ def generate_swot_analysis(student_performance, lesson_topics, correct_attempts,
 
 @app.route("/api/weekly_performance_analysis", methods=['POST'])
 def get_weekly_performance():
-    data = request.json
-    user_id = data['user_id']
-    week_no = data['week_no']
+    """
+    API Endpoint to analyze and retrieve a student's weekly performance.
+
+    Parameters:
+    - user_id (int): The ID of the student/user.
+    - week_no (int): The week number for which the performance is to be analyzed
     
+    Returns:
+    - JSON object containing the SWOT analysis report and performance scores.
+    - Error responses for cases such as user not found, week not found, 
+      no questions found, or student answers not submitted.
 
-    # week = Week.query.filter_by(week_no=week_no).first()
-    # if week is None:
-    #     return jsonify({"error": "Week not Found!"}), 404
+    Responses:
+    - 200: Success with the SWOT analysis report.
+    - 404: User not found, Week not found, No questions found, or Student didn't submit answers.
+    - 500: Internal server error during SWOT analysis generation.
+    """
 
-    # week_id = week.id
+    try:
+        # Extract user_id and week_no from the request JSON
+        data = request.json
+        user_id = data.get('user_id')
+        week_no = data.get('week_no')
 
-    lessons = Lesson.query.filter_by(week_id=week_no).all()
-    #course = Course.query.filter_by(id=lessons[0].course.id).first()
-    lesson_topics = [lesson.lesson_topic for lesson in lessons]
+        # Check if user_id and week_no are provided
+        if not user_id or not week_no:
+            return jsonify({"error": "user_id and week_no are required fields"}), 400
+        
 
-    questions = Question.query.filter(Question.lesson_id.in_([lesson.lesson_id for lesson in lessons])).all()
+        # Fetch the user by user_id
+        user = User.query.filter_by(id=user_id).first()
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
 
-    if not questions:
-        return jsonify({"error": "No Questions found for this week"}), 404
+        # Fetch the week by week_no
+        week = Week.query.filter_by(week_no=week_no).first()
+        if week is None:
+            return jsonify({"error": "Week not found"}), 404
 
-    student_answers = StudentQuestion.query\
-        .filter(StudentQuestion.question_id.in_([q.question_id for q in questions]))\
-        .filter_by(user_id=user_id).all()
+        week_id = week.id
 
-    if not student_answers:
-        return jsonify({"error": "Student Didn't Submitted the Answers for this week"}), 404
+        # Check if the SWOT analysis already exists in the database
+        existing_performance = StudentWeeklyPerformance.query.filter_by(
+            user_id=user_id, week_id=week_id).first()
+        
+        if existing_performance:
+            # Return the existing SWOT analysis if found
+            swot_analysis = {
+                "user_id": existing_performance.user_id,
+                "week_id": existing_performance.week_id,
+                "performance": {
+                    "aq_score": existing_performance.aq_score,
+                    "pm_score": existing_performance.pm_score,
+                    "pp_score": existing_performance.pp_score,
+                    "gp_score": existing_performance.gp_score,
+                    "gq_score": existing_performance.gq_score,
+                    "overall_ai_score": existing_performance.overall_ai_score
+                },
+                "swot_analysis": json.loads(existing_performance.ai_report_pdf_url)
+            }
+            return swot_analysis, 200
 
-    correct_attempted_ques = []
-    incorrect_attempted_ques = []
+        # Fetch all lessons associated with the week
+        lessons = Lesson.query.filter_by(week_id=week_id).all()
+        if not lessons:
+            return jsonify({"error": "No lessons found for this week"}), 404
 
-    total_questions = len(questions)
-    scores = {
-        'aq_score': 0,
-        'pm_score': 0,
-        'pp_score': 0,
-        'gp_score': 0,
-        'gq_score': 0,
-    }
-    total_marks = 0
+        
+        course = Course.query.filter_by(id=lessons[0].course.id).first()
+        if course is None:
+            return jsonify({"error": "Course not found"}), 404
+        
+        lesson_topics = [lesson.lesson_topic for lesson in lessons]
 
-    for answer in student_answers:
-        question = Question.query.filter_by(question_id=answer.question_id).first()
-        if question:
-            if answer.is_correct:
-                if question.question_type_aq_pm_pp_gp_gq == "AQ":
-                    scores['aq_score'] += question.marks
-                elif question.question_type_aq_pm_pp_gp_gq == "PM":
-                    scores['pm_score'] += question.marks
-                elif question.question_type_aq_pm_pp_gp_gq == "PP":
-                    scores['pp_score'] += question.marks
-                elif question.question_type_aq_pm_pp_gp_gq == "GP":
-                    scores['gp_score'] += question.marks
-                elif question.question_type_aq_pm_pp_gp_gq == "GQ":
-                    scores['gq_score'] += question.marks
+        # Fetch all questions associated with the lessons
+        questions = Question.query.filter(Question.lesson_id.in_([lesson.lesson_id for lesson in lessons])).all()
+        if not questions:
+            return jsonify({"error": "No questions found for this week"}), 404
 
-                correct_attempted_ques.append(question.question)
-            else:
-                incorrect_attempted_ques.append(question.question)
-            total_marks += question.marks
 
-    obtained_score = (scores['aq_score'] + scores['pm_score'] + scores['pp_score'] +
-                      scores['gp_score'] + scores['gq_score'])
-    overall_ai_score = obtained_score / total_marks if total_marks != 0 else 0
+        # Fetch student answers for the questions
+        student_answers = StudentQuestion.query\
+            .filter(StudentQuestion.question_id.in_([q.question_id for q in questions]))\
+            .filter_by(user_id=user_id).all()
+        if not student_answers:
+            return jsonify({"error": "Student did not submit answers for this week"}), 404
 
-    # print(scores)
-    # print(overall_ai_score)
-    swot_analysis_json = generate_swot_analysis({
-        'aq_score': scores['aq_score'],
-        'pm_score': scores['pm_score'],
-        'pp_score': scores['pp_score'],
-        'gp_score': scores['gp_score'],
-        'gq_score': scores['gq_score'],
-        'overall_ai_score': overall_ai_score
-    }, lesson_topics, correct_attempted_ques, incorrect_attempted_ques)
-    # print(swot_analysis_json)
-    swot_analysis = json.loads(swot_analysis_json)
-    performance = StudentWeeklyPerformance(
-        user_id=user_id,
-        week_id=week_no,
-        course_id=1,
-        aq_score=scores['aq_score'],
-        pm_score=scores['pm_score'],
-        pp_score=scores['pp_score'],
-        gp_score=scores['gp_score'],
-        gq_score=scores['gq_score'],
-        overall_ai_score=overall_ai_score,
-        ai_report_pdf_url = "Use swot analysis" 
-    )
 
-    db.session.add(performance)
-    db.session.commit()
+        correct_attempted_ques = []
+        incorrect_attempted_ques = []
 
-    return swot_analysis, 200
+        scores = {
+            'aq_score': 0,
+            'pm_score': 0,
+            'pp_score': 0,
+            'gp_score': 0,
+            'gq_score': 0,
+        }
+        total_marks = 0
+        
+        # Calculate scores based on student answers
+        for answer in student_answers:
+            question = Question.query.filter_by(question_id=answer.question_id).first()
+            if question:
+                if answer.is_correct:
+                    if question.question_type_aq_pm_pp_gp_gq == "AQ":
+                        scores['aq_score'] += question.marks
+                    elif question.question_type_aq_pm_pp_gp_gq == "PM":
+                        scores['pm_score'] += question.marks
+                    elif question.question_type_aq_pm_pp_gp_gq == "PP":
+                        scores['pp_score'] += question.marks
+                    elif question.question_type_aq_pm_pp_gp_gq == "GP":
+                        scores['gp_score'] += question.marks
+                    elif question.question_type_aq_pm_pp_gp_gq == "GQ":
+                        scores['gq_score'] += question.marks
+
+                    correct_attempted_ques.append(question.question)
+                else:
+                    incorrect_attempted_ques.append(question.question)
+                total_marks += question.marks
+
+        # Calculate overall AI score
+        obtained_score = (scores['aq_score'] + scores['pm_score'] + scores['pp_score'] +
+                        scores['gp_score'] + scores['gq_score'])
+        overall_ai_score = obtained_score / total_marks if total_marks != 0 else 0
+
+        # Generate SWOT analysis
+        try:
+            swot_analysis_json = generate_swot_analysis({
+                'aq_score': scores['aq_score'],
+                'pm_score': scores['pm_score'],
+                'pp_score': scores['pp_score'],
+                'gp_score': scores['gp_score'],
+                'gq_score': scores['gq_score'],
+                'overall_ai_score': overall_ai_score
+            }, lesson_topics, correct_attempted_ques, incorrect_attempted_ques)
+        except Exception as e:
+            return jsonify({"error": f"Failed to generate SWOT analysis - {str(e)}"}), 500
+        
+        # Parse SWOT analysis JSON
+        swot_analysis = json.loads(swot_analysis_json)
+
+        # Save the student's weekly performance in the database
+        performance = StudentWeeklyPerformance(
+            user_id=user_id,
+            week_id=week_id,
+            course_id=course.id,
+            aq_score=scores['aq_score'],
+            pm_score=scores['pm_score'],
+            pp_score=scores['pp_score'],
+            gp_score=scores['gp_score'],
+            gq_score=scores['gq_score'],
+            overall_ai_score=overall_ai_score,
+            ai_report_pdf_url=json.dumps(swot_analysis['swot_analysis'])
+        )
+
+        db.session.add(performance)
+        db.session.commit()
+
+        return swot_analysis, 200
+    except KeyError as e:
+        return jsonify({"error": f"Missing key in request: {str(e)}"}), 400
+    # except Exception as e:
+    #     return jsonify({"error": f"INTERNAL SERVER ERROR: {str(e)}"}), 500
+    
 
 # ============================ Feedback Sentiment Analysis ==========================
 
 
 def generate_feedback_summary(lessons_feedbacks):
+    """
+    Generates a summarized feedback report for lectures using the AI model.
+
+    This function processes feedback data for each lecture, analyzes sentiment, summarizes key points, and provides improvement suggestions. It returns a JSON-formatted string following a predefined schema.
+
+    Parameters:
+    - lessons_feedbacks (dict): Dictionary of feedback lists keyed by lecture IDs.
+
+    Returns:
+    - str: JSON string with feedback summaries, sentiment scores, and suggestions.
+    """
+    
     model = genai.GenerativeModel(model_name="gemini-1.5-flash",
                               generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     req_response_schema = {
@@ -1058,8 +1164,6 @@ def generate_feedback_summary(lessons_feedbacks):
     Follow the JSON schema.<JSONSchema>{json.dumps(req_response_schema)}</JSONSchema>
     """
 
-    # print(prompt)
-
     response = model.generate_content(prompt)
     response_text = response.candidates[0].content.parts[0].text
     return response_text
@@ -1067,91 +1171,143 @@ def generate_feedback_summary(lessons_feedbacks):
 
 @app.route("/api/sentiment_analysis", methods=['POST'])
 def sentiment_analysis():
-    ratings = Rating.query.all()
-    lessons_feedback = {}
-    # print(ratings)
+    """
+    API Endpoint to perform sentiment analysis on feedback provided for lessons.
 
-    for rating in ratings:
-        lesson_id = rating.lesson_id
-        feedback = rating.feedback
-        # print(lesson_id)
+    This API collects all ratings from the database, extracts feedback for each lesson, 
+    and then generates a feedback summary using sentiment analysis. 
+    The results are returned as a JSON response.
 
-        if lesson_id not in lessons_feedback:
-            lessons_feedback[lesson_id] = []
+    Returns:
+    - JSON object containing the sentiment analysis results for each lesson.
+    - Error responses for cases such as issues with database retrieval or sentiment analysis.
 
-        if feedback:
-            lessons_feedback[lesson_id].append(feedback)
+    Responses:
+    - 200: Success with the feedback summary.
+    - 404: No ratings found in the database.
+    - 500: Internal server error during database query or feedback summary generation.
+    """
 
-    analysis_results = []
+    try:
+        # Fetch all ratings from the database
+        ratings = Rating.query.all()
 
-    # print(lessons_feedback)
+        # Check if there are no ratings
+        if not ratings:
+            return jsonify({"error": "No ratings found in the database"}), 404
 
-    f_summary = generate_feedback_summary(lessons_feedback)
-    feedback_summary = json.loads(f_summary)
-    # print(feedback_summary)
+        lessons_feedback = {}
 
-    return feedback_summary, 200
+        # Organize feedbacks by lesson_id
+        for rating in ratings:
+            lesson_id = rating.lesson_id
+            feedback = rating.feedback
+
+            if lesson_id not in lessons_feedback:
+                lessons_feedback[lesson_id] = []
+
+            # Add feedback to the corresponding lesson_id
+            if feedback:
+                lessons_feedback[lesson_id].append(feedback)
+
+        try:
+            # Generate feedback summary using sentiment analysis
+            f_summary = generate_feedback_summary(lessons_feedback)
+            feedback_summary = json.loads(f_summary)
+        except Exception as e:
+            return jsonify({"error": f"Failed to generate feedback summary - {str(e)}"}), 500
+
+        return feedback_summary, 200
+    except Exception as e:
+        return jsonify({"error": "Internal Server Error"}), 500
 
 
 # =========================== Contextual ChatBot API ==============================
 
+# Conversation History for ChatBot
 conversations = {}
-
-
-@app.route("/init", methods=['POST'])
-def init_session():
-    session_id = str(len(conversations) + 1)
-    conversations[session_id] = []
-    print(f"Total sessions: {len(conversations)}")
-    return jsonify({
-        "message": "Session Initialized",
-        "session_id": session_id}), 200
 
 
 @app.route("/api/chat", methods=['POST'])
 def chat_ai():
-    session_id = request.json.get("session_id")
-    user_message = request.json.get("message")
+    """
+    API Endpoint for Chat with AI ChatBot
 
-    generation_config = GenerationConfig(
-        temperature=0.1,
-        top_p=0.95,
-        top_k=64,
-        max_output_tokens=500,
-        response_mime_type="text/plain"
-    )
+    This API allows users to interact with an AI Bot
 
-    chat_model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        generation_config=generation_config,
-        system_instruction="""
-        You should behave like a mentor or tutor or teacher for python programming.
-        You are also helpful assistant in solving programming question. 
-        Explain terms that are understandable.
-        Use real world examples and add humor to make conversation interesting and engaging.
-        Ask questions, so that you can better understand the student.
-        """
-    )
+    The conversation history is maintained using a session ID, allowing for continuous dialogue.
 
-    if session_id not in conversations:
-        conversations[session_id] = []
+    Request:
+    - session_id: (Optional) A unique identifier for the chat session.
+    - message: The user's message to the AI.
 
-    conversation_history = conversations[session_id]
+    Returns:
+    - JSON object containing the AI's response.
+    - Error responses for cases such as missing data or issues with the AI model interaction.
 
-    chat_session = chat_model.start_chat(
-        history=conversation_history
-    )
+    Responses:
+    - 200: Success with the AI's response.
+    - 500: Internal server error during AI model interaction.
+    """
 
-    response = chat_session.send_message(user_message)
+    try:
+        # Extract session_id and user_message from the request JSON
+        session_id = request.json.get("session_id")
+        user_message = request.json.get("message")
 
-    model_response = response.text
-    # print(model_response)
+        if not user_message:
+            return jsonify({"error": "Message cannot be empty!"}), 400
+        
+        # Ensure session_id is present and valid, otherwise create a new one
+        if not session_id or session_id not in conversations:
+            # Initialize the session with an empty conversation history
+            conversations[session_id] = []
 
-    conversation_history.append({"role": "user", "parts": [user_message]})
-    conversation_history.append({"role": "model", "parts": [model_response]})
-    conversations[session_id] = conversation_history
+        # Initialize the chat model with generation configuration
+        generation_config = GenerationConfig(
+            temperature=0.1,
+            top_p=0.95,
+            top_k=64,
+            max_output_tokens=500,
+            response_mime_type="text/plain"
+        )
 
-    return jsonify({"response": model_response}), 200
+        chat_model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config=generation_config,
+            system_instruction="""
+            You should behave like a mentor or tutor or teacher for python programming.
+            You are also helpful assistant in solving programming question. 
+            Explain terms that are understandable.
+            Use real world examples and add humor to make conversation interesting and engaging.
+            Ask questions, so that you can better understand the student.
+            """
+        )
+
+         # Retrieve or initialize conversation history
+        conversation_history = conversations[session_id]
+
+        chat_session = chat_model.start_chat(
+            history=conversation_history
+        )
+
+        try:
+            response = chat_session.send_message(user_message)
+        except Exception as e:
+            # Handle exceptions that might occur during message generation
+            return jsonify({"error": f"An error occurred while processing the message."}), 500
+
+        model_response = response.text
+
+        conversation_history.append({"role": "user", "parts": [user_message]})
+        conversation_history.append({"role": "model", "parts": [model_response]})
+        conversations[session_id] = conversation_history
+
+        return jsonify({"response": model_response}), 200
+    except KeyError as e:
+        return jsonify({"error": f"Missing key: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"error": "Internal Server Error"}), 500
 
 
 
