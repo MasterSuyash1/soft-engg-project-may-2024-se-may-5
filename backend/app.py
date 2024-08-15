@@ -288,7 +288,7 @@ def get_explanation(question, correct_answer):
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 @app.route('/api/activity/quiz/<int:lesson_id>', methods=['GET', 'POST'])
 def activity_quiz(lesson_id):
-    questions = Question.query.filter_by(lesson_id=lesson_id, question_type_aq_pm_pp_gp_gq='AQ').all()
+    questions = Question.query.filter_by(lesson_id=lesson_id, question_type_aq_pm_pp_gp_gq='AQ').all() #queries from the questions table
     lesson = Lesson.query.get(lesson_id)
     if not lesson:
         return jsonify({"error": "Lesson not found."}), 404
@@ -315,7 +315,7 @@ def activity_quiz(lesson_id):
         total_score = 0
         max_score = sum([q['marks'] for q in quiz_data])
 
-        for idx, question in enumerate(quiz_data):
+        for idx, question in enumerate(quiz_data): # verification of correct answers with the user's answer
             user_answer = user_answers.get(str(idx),"null")
             if question['type'] == 'MSQ' and user_answer:
                 user_answer = set(user_answer)
@@ -324,25 +324,25 @@ def activity_quiz(lesson_id):
             total_score += score
 
             try:
-                if not is_correct:
+                if not is_correct:   # if the user answer is incorrect, explanation is coming from gemini api
                     explanation = get_explanation(question['question'], question['correct'])
 
                 else:
                     explanation = None
             except Exception as e:
-                return jsonify({'error': f'Error generating activity question"s explanation: {e}'}),400
+                return jsonify({'error': f'Error generating activity question"s explanation: {e}'}),404
 
             existing_response = StudentQuestion.query.filter_by(user_id=user_id,question_id=question['question_id']).first()
             if existing_response:
-                # Update the existing response
+                # Updating the existing response in the student question table
                 existing_response.is_correct = is_correct
             else:
-                # Create a new response
+                # if the response is not found in the student question table then a student response is created
                 student_response = StudentQuestion(user_id=user_id,question_id=question['question_id'], is_correct=is_correct,programming_code=None)
                 db.session.add(student_response)
                 db.session.commit()
                 
-            results.append({
+            results.append({   # result is appended here 
                 'question': question['question'],
                 'correct_answer': question['correct'],
                 'user_answer': list(user_answer) if isinstance(user_answer, set) else user_answer,
@@ -372,6 +372,7 @@ def parse_generated_question(response_text, question_type, topic):
         return None
 
 def generate_new_question(lesson_id):
+    # this function generates new questions related to the topic of the question from the database
     questions = Question.query.filter_by(lesson_id=lesson_id).all()
 
     quiz_data = [
@@ -478,6 +479,7 @@ def generate_new_question(lesson_id):
     for question_data in quiz_data:
         topic = question_data['topic']
         question_type = question_data['type']
+        # this prompt uses the schema defined above and gives a json formatted output using the topic and the question-type([MCQ or MSQ] which is extracted from  the database)
         prompt = (
             f"Generate a new question based on the following topic and type:\n"
             f"Topic: {topic}\n"
@@ -491,7 +493,7 @@ def generate_new_question(lesson_id):
         if new_question is not None:
             new_questions.append(new_question)
     return new_questions
-#new_questions = generate_new_question(quiz_data)
+
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
@@ -503,15 +505,15 @@ def new_quiz(lesson_id):
 
     if request.method == 'GET':
         try:
-            session['new_quiz_data'] = generate_new_question(lesson_id)
+            session['new_quiz_data'] = generate_new_question(lesson_id)  # the questions generated would be stored in the sessions
             return jsonify({'new_quiz_data': list(enumerate(session['new_quiz_data']))})
         except Exception as e:
-            return jsonify({'error': f'Error generating extra questions: {e}'}),400
+            return jsonify({'error': f'Error generating extra questions: {e}'}),404
     
     if request.method == 'POST':
         print(session)
         if 'new_quiz_data' not in session:
-            return jsonify({'error': 'Quiz data not found. Please start a new quiz.'}), 400
+            return jsonify({'error': 'Quiz data not found. Please start a new quiz.'}), 404
 
         data = request.get_json()
         user_answers = data.get('answers', {})
@@ -519,7 +521,7 @@ def new_quiz(lesson_id):
         total_score = 0
         max_score = sum([q['marks'] for q in session['new_quiz_data']])
 
-        for idx, question in enumerate(session['new_quiz_data']):
+        for idx, question in enumerate(session['new_quiz_data']):  # verification of answers from the student's answer.
             user_answer = user_answers.get(str(idx),"did not understand")
             correct_answer = question['correct']
             is_correct = user_answer == correct_answer if question['type'] == 'MCQ' else set(user_answer) == set(correct_answer)
@@ -540,7 +542,7 @@ def new_quiz(lesson_id):
                     explanation = get_explanation(question['question'], correct_answer)
                     result['explanation'] = explanation
             except Exception as e:
-                    return jsonify({'error': f'Error generating extra question"s explanation: {e}'}),400
+                    return jsonify({'error': f'Error generating extra question"s explanation: {e}'}),404
 
             results.append(result)
 
@@ -556,13 +558,13 @@ def new_quiz(lesson_id):
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
 @app.route('/api/graded/quiz/<int:week_id>', methods=['GET', 'POST'])
 def quiz(week_id):
-    lesson_ids = [lesson.lesson_id for lesson in Lesson.query.with_entities(Lesson.lesson_id).filter_by(week_id=week_id).all()]
+    lesson_ids = [lesson.lesson_id for lesson in Lesson.query.with_entities(Lesson.lesson_id).filter_by(week_id=week_id).all()]  # the list contains all the list ids for a particular week
     if not lesson_ids:
-        return jsonify({"error": "No lesson  in this week."}), 400
+        return jsonify({"error": "No lesson  in this week."}), 404
     
-    questions = Question.query.filter(Question.lesson_id.in_(lesson_ids)).all()
+    questions = Question.query.filter(Question.lesson_id.in_(lesson_ids)).all()  # questions are extracted based on the lesson ids for a particular week
     if not questions:
-        return jsonify({"error": "No questions  for this week."}), 400
+        return jsonify({"error": "No questions  for this week."}), 404
     quiz_data = [
         {
             'question_id':q.question_id,
@@ -583,7 +585,7 @@ def quiz(week_id):
         total_score = 0
         max_score = sum([q['marks'] for q in quiz_data])
 
-        for idx, question in enumerate(quiz_data):
+        for idx, question in enumerate(quiz_data): # verification of correct answers with the user answers 
             user_answer = user_answers.get(str(idx),"null")
             if question['type'] == 'MSQ' and user_answer:
                 user_answer = set(user_answer)
@@ -602,10 +604,10 @@ def quiz(week_id):
 
             existing_response = StudentQuestion.query.filter_by(user_id = user_id, question_id=question['question_id']).first()
             if existing_response:
-                # Update the existing response
+                # Updating the existing response if present in the student question table 
                 existing_response.is_correct = is_correct
             else:
-                # Create a new response
+                # Creating a new response if not present in the student question table 
                 student_response = StudentQuestion(user_id = user_id, question_id=question['question_id'], is_correct=is_correct,programming_code=None)
                 db.session.add(student_response)
                 db.session.commit()
@@ -615,7 +617,7 @@ def quiz(week_id):
                     result['explanation'] = explanation
                 results.append(result)
             except Exception as e:
-                return jsonify({'error': f'Error generating graded question"s explanation: {e}'}),400
+                return jsonify({'error': f'Error generating graded question"s explanation: {e}'}),404
         db.session.commit()
         return jsonify({
             'results': results,
@@ -672,10 +674,10 @@ def process_video(lesson_id):
     
     transcript, transcript_text = extract_transcript_details(video_id)
     if transcript_text.startswith("Error"):
-        return jsonify({"error": transcript_text}), 400
+        return jsonify({"error": transcript_text}), 404
     
     notes_md = generate_gemini_content(transcript_text)
-    notes_html = Misaka().render(notes_md)
+    notes_html = Misaka().render(notes_md) # this is basically used for converting the markdown to Html format
 
     prompt_topics = "You are a YouTube video note taker. Extract important topics from the notes. Start the content with the heading '## Topics discussed'. Use markdown format."
     try:
@@ -685,7 +687,7 @@ def process_video(lesson_id):
         important_topics_md = response.text
         important_topics_html = Misaka().render(important_topics_md)
     except Exception as e:
-        return jsonify({'error': f'Error generating notes: {e}'}),400   
+        return jsonify({'error': f'Error generating notes: {e}'}),404   
     embed_url = f"https://www.youtube.com/embed/{video_id}"
     video_embed = f'<iframe id="videoPlayer" width="560" height="315" src="{embed_url}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
     
@@ -695,43 +697,6 @@ def process_video(lesson_id):
         "notes": notes_html,
         "important_topics": important_topics_html
     })
-
-@app.route('/api/lessons', methods=['POST'])
-def create_lesson():
-    data = request.get_json()
-    new_lesson = Lesson(
-        course_id=data['course_id'],
-        week_id=data['week_id'],
-        lesson_topic=data.get('lesson_topic'),
-        lecture_video_url=data.get('lecture_video_url')
-    )
-    db.session.add(new_lesson)
-    db.session.commit()
-    return jsonify({'message': 'Lesson created successfully', 'lesson_id': new_lesson.lesson_id}), 200
-
-@app.route('/api/questions', methods=['POST'])
-def create_question():
-    data = request.get_json()
-    correct_option = data.get('correct_option')
-
-    # Convert correct_option to a list if it's not already a list (to handle MSQ)
-    if isinstance(correct_option, str):
-        correct_option = [correct_option]
-
-    new_question = Question(
-        lesson_id=data['lesson_id'],
-        question_type_aq_pm_pp_gp_gq=data.get('question_type_aq_pm_pp_gp_gq'),
-        question=data.get('question'),
-        question_type_mcq_msq=data.get('question_type_mcq_msq'),
-        option_1=data.get('option_1'),
-        option_2=data.get('option_2'),
-        option_3=data.get('option_3'),
-        option_4=data.get('option_4'),
-        correct_option=correct_option,
-    )
-    db.session.add(new_question)
-    db.session.commit()
-    return jsonify({'message': 'Question created successfully', 'question_id': new_question.question_id}), 200
 
 
 # =================== Student Weekly Performance Analysis ================================
