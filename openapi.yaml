@@ -1,0 +1,1508 @@
+openapi: 3.0.3
+info:
+  title: AlgoMatrix Learning  API
+  version: 1.0.0
+  description: |
+    ### This is Online Learning Server based on the OpenAPI 3.0.3 specification.  You can access the application at [https://algomatrix-learning.com](http://localhost:3000/). Use this API to; 
+    ### 1. Signup, login, logout, get and delete users.
+    ### 2. Post Lecture video ratings by Students
+    ### 3. Generate Sentiment Analysis of Lecture ratings by Admininstrators
+    ### 4. Generate Online session video about, transcript and notes
+    ### 5. Interact with Gen AI Agent using ChatBot
+    ### 6. Get and Submit Activity Quiz Questions and Explanation for incorrect answers from Gen AI
+    ### 6. Get and Submit Extra Activity Quiz Questions and Explanation for incorrect answers from Gen AI
+    ### 7. Get and Submit Graded Quiz Questions and Explanation for incorrect answers from Gen AI
+    ### 8. Compile and test the programming code submitted by students using Gen AI
+    ### 9. Get help from Gen AI for unsuccessful codes
+    ### 10. Generate efficient code using best practices from Gen AI
+    ### 11. Generate Student Weekly Performance Report with SWOT analysis
+   
+    ### Additional Resource: [User Requirements](https://drive.google.com/file/d/1T30H8b8oISQQcP8Uw6pxQAZNtSmAGwvl/view?usp=drive_link), [Story Board and Wireframes](https://drive.google.com/file/d/1u-nIS2nf3Dd9LrTAUz-VLvMB7aJnpM81/view?usp=drive_link), [Project Documentation](https://drive.google.com/file/d/1Qy0An3ckgpsmIUV1zLWlnythaZROL7xl/view?usp=drive_link)
+servers:
+  - url: http://127.0.0.1:5000
+    variables: {}
+tags:
+  - name: User
+    description: User Management 
+  - name: Lectures
+    description: Student Interations during weekly lessons
+  - name: Activity and Extra Questions
+    description: Students solving activity and extra questions with Gen AI handholding
+  - name: Programming Questions
+    description: Student solving programming questions with Gen AI handholding
+  - name: Graded Questions
+    description: Student solving graded questions 
+  - name: Weekly Performance
+    description: Generate student weekly performance report with SWOT analysis
+paths:
+  /signup:
+    post:
+      tags:
+        - User
+      summary: User Signup
+      description: Sign Up for User or Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  description: The username of the new user.
+                  example: johndoe
+                email:
+                  type: string
+                  description: The email address of the new user.
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  description: The password for the new user account.
+                  example: "P@ssw0rd123"
+      responses:
+        '201':
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Confirmation message indicating successful user creation.
+                    example: "User created successfully"
+        '400':
+          description: Bad request due to invalid input data or missing required fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the cause of the failure.
+                    example: "Invalid input data or missing required fields"
+        '409':
+          description: Conflict error due to an existing user with the same username or email.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the conflict.
+                    example: "User with this username or email already exists"
+        '500':
+          description: Internal server error occurred while processing the request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating a server-side issue.
+                    example: "Error occurred while creating the user account - <error message>"
+  /login:
+    post:
+      tags:
+        - User
+      summary: User Login
+      description: Login for user or admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  description: The email address of the user.
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  description: The password for the user account.
+                  example: "P@ssw0rd123"
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Confirmation message indicating successful login.
+                    example: "Login successful"
+                  is_admin:
+                    type: boolean
+                    description: Flag indicating if the user is an admin.
+                    example: false
+        '400':
+          description: Bad request due to invalid input data or missing required fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the cause of the failure.
+                    example: "Invalid input data or missing required fields"
+        '401':
+          description: Unauthorized due to invalid credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating invalid credentials.
+                    example: "Invalid credentials"
+        '500':
+          description: Internal server error occurred during login.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating a server-side issue.
+                    example: "Error occurred during login - <error message>"
+  /api/submit_rating:
+    post:
+      summary: Submit a New Rating
+      description: Submit a new rating for a specific lesson, including ratings for audio, video, content, and additional feedback.
+      requestBody:
+        description: JSON object containing rating details.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: ID of the user submitting the rating.
+                  example: 42
+                lesson_id:
+                  type: integer
+                  description: ID of the lesson being rated.
+                  example: 101
+                audio:
+                  type: integer
+                  description: Rating for the audio quality (integer between 1 and 5).
+                  example: 4
+                video:
+                  type: integer
+                  description: Rating for the video quality (integer between 1 and 5).
+                  example: 5
+                content:
+                  type: integer
+                  description: Rating for the content quality (integer between 1 and 5).
+                  example: 3
+                feedback:
+                  type: string
+                  description: User's written feedback.
+                  example: "The video was informative but the audio could be clearer."
+      responses:
+        '201':
+          description: Successfully submitted the rating.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Confirmation message indicating successful rating submission.
+                    example: "Rating submitted successfully"
+        '400':
+          description: Bad Request due to missing or invalid fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating which fields are missing or invalid.
+                    example:
+                      MissingFieldsError:
+                        value: "Missing fields: user_id, lesson_id"
+                      InvalidTypeError:
+                        value: "Audio, video, and content ratings must be integers."
+                      RatingsOutOfRangeError:
+                        value: "Ratings should be between 1 and 5."
+        '500':
+          description: Internal server error occurred while submitting the rating.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating a server-side issue.
+                    example: "Error occurred while submitting rating - <error message>"
+      tags:
+        - Lectures
+  /api/ratings:
+    get:
+      tags:
+        - Lectures
+      summary: Get Ratings
+      description: Retrieve all submitted ratings.
+      responses:
+        '200':
+          description: List of ratings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    user_id:
+                      type: integer
+                      example: 1
+                    audio:
+                      type: integer
+                      example: 4
+                    video:
+                      type: integer
+                      example: 5
+                    content:
+                      type: integer
+                      example: 5
+                    feedback:
+                      type: string
+                      example: Great session!
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: '2023-07-29T10:00:00Z'
+        '500':
+          description: Internal server error occurred while retrieving ratings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating a server-side issue.
+                    example: "Error occurred while fetching ratings - <error message>"
+  /api/users:
+    get:
+      tags:
+        - User
+      summary: Get Users
+      description: Retrieve a list of all users.
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: johndoe
+                    email:
+                      type: string
+                      example: johndoe@example.com
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: '2023-07-29T10:00:00Z'
+        '500':
+          description: Internal server error occurred while retrieving users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating a server-side issue.
+                    example: "Error occurred while fetching users - <error message>"
+  /api/users/{user_id}:
+    delete:
+      tags:
+        - User
+      summary: Delete User
+      description: Delete a user by ID.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted successfully
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+  /api/activity/quiz/{lesson_id}:
+    parameters:
+      - name: lesson_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: ID of the lesson for which to retrieve questions.
+    get:
+      tags:
+        - Activity and Extra Questions
+      summary: Get Quiz Questions
+      description: Retrieve questions for a specific lesson ID.
+      responses:
+        '200':
+          description: List of quiz questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question:
+                      type: string
+                      description: The question text.
+                      example: Which of the following data types is mutable?
+                    options:
+                      type: array
+                      description: List of possible answers.
+                      items:
+                        type: string
+                      example:
+                        - int
+                        - str
+                        - tuple
+                        - list
+                    correct:
+                      type: string
+                      description: The correct answer or answers.
+                      example: list
+                    type:
+                      type: string
+                      description: The type of question (MCQ or MSQ).
+                      example: MCQ
+                    marks:
+                      type: integer
+                      description: Marks assigned for the question.
+                      example: 3
+                    topic:
+                      type: string
+                      description: The topic of the lesson.
+                      example: Python
+        '404':
+          description: Lesson or questions not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Lesson not found.
+    post:
+      tags:
+        - Activity and Extra Questions
+      summary: Submit Quiz Answers
+      description: Submit answers for a quiz and receive scores and explanations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: The ID of the user submitting the quiz.
+                  example: 1
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: A mapping of question indices to user-provided answers.
+                  example:
+                    '0': 'list'
+      responses:
+        '200':
+          description: Quiz results with scores and explanations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    description: List of question results.
+                    items:
+                      type: object
+                      properties:
+                        question:
+                          type: string
+                          description: The question text.
+                          example: Which of the following data types is mutable?
+                        correct_answer:
+                          type: string
+                          description: The correct answer.
+                          example: list
+                        user_answer:
+                          type: string
+                          description: The answer provided by the user.
+                          example: tuple
+                        is_correct:
+                          type: boolean
+                          description: Whether the user's answer was correct.
+                          example: false
+                        score:
+                          type: integer
+                          description: The score received for this question.
+                          example: 3
+                        explanation:
+                          type: string
+                          description: Explanation for the question, if incorrect.
+                          example: >-
+                            The correct answer is list because we can change an item in a list by accessing it directly as part of the assignment statement.
+                  total_score:
+                    type: integer
+                    description: The total score achieved by the user.
+                    example: 3
+                  max_score:
+                    type: integer
+                    description: The maximum possible score for the quiz.
+                    example: 10
+                  score_percentage:
+                    type: number
+                    description: The percentage score achieved.
+                    format: float
+                    example: 30.0
+        '400':
+          description: Error in generating explanations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error generating activity question's explanation.
+        '404':
+          description: Lesson or questions not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Lesson not found.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error occurred.
+  /api/activity/extra_questions/{lesson_id}:
+    parameters:
+      - name: lesson_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: ID of the lesson for which to generate extra questions.
+    get:
+      tags:
+        - Activity and Extra Questions
+      summary: Generate Extra Questions
+      description: >-
+        Generates additional questions for a given lesson based on existing quiz
+        data. The questions are stored in the session for later use.
+      responses:
+        '200':
+          description: A list of new quiz questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_quiz_data:
+                    type: array
+                    description: A list of generated questions
+                    items:
+                      type: object
+                      properties:
+                        question:
+                          type: string
+                          description: The text of the question.
+                          example: Which of the following data types is mutable?
+                        options:
+                          type: array
+                          description: List of possible answers.
+                          items:
+                            type: string
+                          example:
+                            - int
+                            - str
+                            - tuple
+                            - list
+                        correct:
+                          type: string
+                          description: The correct answer or answers.
+                          example: list
+                        type:
+                          type: string
+                          description: The type of question (MCQ or MSQ).
+                          example: MCQ
+                        marks:
+                          type: integer
+                          description: Marks assigned for the question.
+                          example: 3
+                        topic:
+                          type: string
+                          description: The topic of the lesson.
+                          example: python
+        '400':
+          description: Error generating questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Error generating extra questions: Some error message.'
+        '404':
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Lesson not found.
+    post:
+      tags:
+        - Activity and Extra Questions
+      summary: Submit Answers for Extra Questions
+      description: >-
+        Submit answers for the extra quiz questions and receive results, scores, and explanations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: A mapping of question indices to user-provided answers.
+                  example:
+                    '0': 'list'
+      responses:
+        '200':
+          description: Quiz results with scores and explanations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    description: List of question results.
+                    items:
+                      type: object
+                      properties:
+                        question:
+                          type: string
+                          description: The question text.
+                          example: Which of the following data types is mutable?
+                        options:
+                          type: array
+                          description: List of possible answers.
+                          items:
+                            type: string
+                          example:
+                            - int
+                            - str
+                            - tuple
+                            - list
+                        user_answer:
+                          type: string
+                          description: The answer provided by the user.
+                          example: list
+                        correct_answer:
+                          type: string
+                          description: The correct answer.
+                          example: list
+                        is_correct:
+                          type: boolean
+                          description: Whether the user's answer was correct.
+                          example: true
+                        explanation:
+                          type: string
+                          description: Explanation for the question, if incorrect.
+                          example: >-
+                            The correct answer is list because we can change an item in a list by accessing it directly as part of the assignment statement.
+                  total_score:
+                    type: integer
+                    description: The total score achieved by the user.
+                    example: 3
+                  max_score:
+                    type: integer
+                    description: The maximum possible score for the quiz.
+                    example: 3
+        '400':
+          description: Error in processing answers or quiz data not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Quiz data not found. Please start a new quiz.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error occurred.
+
+  /api/graded/quiz/{week_id}:
+    get:
+      tags:
+        - Graded Questions
+      summary: Retrieve Quiz Data
+      description: >-
+        Retrieves the quiz data for a specific week, including questions, options, 
+        correct answers, and other relevant information. Returns a list of questions 
+        associated with the given week.
+      parameters:
+        - name: week_id
+          in: path
+          required: true
+          description: The ID of the week for which the quiz data is to be retrieved.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Quiz data successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz_data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question_id:
+                          type: integer
+                          description: The ID of the question.
+                        question:
+                          type: string
+                          description: The text of the question.
+                        options:
+                          type: array
+                          items:
+                            type: string
+                          description: The options for the question.
+                        correct:
+                          type: string
+                          description: The correct answer or answers.
+                        type:
+                          type: string
+                          description: The type of the question (e.g., MCQ, MSQ).
+                        marks:
+                          type: integer
+                          description: The marks awarded for the question.
+                        topic:
+                          type: string
+                          description: The topic of the lesson to which the question belongs.
+        '404':
+          description: No lessons or questions found for the specified week.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the issue.
+                    example: "No lessons in this week."
+    post:
+      tags:
+        - Graded Questions
+      summary: Submit Quiz Answers
+      description: >-
+        Submits the user's answers for the quiz of a specific week, evaluates them 
+        against the correct answers, and returns the results including scores and 
+        explanations if needed.
+      parameters:
+        - name: week_id
+          in: path
+          required: true
+          description: The ID of the week for which the quiz answers are being submitted.
+          schema:
+            type: integer
+      requestBody:
+        description: Data required to submit and evaluate quiz answers.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: The ID of the user submitting the answers.
+                  example: 123
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: array
+                    items:
+                      type: string
+                  description: A dictionary of user answers where keys are question IDs and values are answers.
+                  example: { "0": ["option1"], "1": ["option2", "option3"] }
+              required:
+                - user_id
+                - answers
+      responses:
+        '200':
+          description: Quiz answers successfully evaluated and results returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question:
+                          type: string
+                          description: The text of the question.
+                        options:
+                          type: array
+                          items:
+                            type: string
+                          description: The options for the question.
+                        user_answer:
+                          type: array
+                          items:
+                            type: string
+                          description: The user's answer to the question.
+                        correct_answer:
+                          type: string
+                          description: The correct answer or answers.
+                        is_correct:
+                          type: boolean
+                          description: Whether the user's answer is correct.
+                        explanation:
+                          type: string
+                          description: Explanation for the correct answer if the user's answer was incorrect.
+                  score:
+                    type: integer
+                    description: The total score achieved by the user.
+                  max_score:
+                    type: integer
+                    description: The maximum possible score for the quiz.
+        '404':
+          description: Question or week not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the issue.
+                    example: "No questions for this week."
+        '500':
+          description: Internal server error, issues during evaluation or database operations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message detailing the problem encountered.
+                    example: "Error generating explanation for graded question."
+  /api/about-video/{lesson_id}:
+    get:
+      summary: Generate an "About Video" description for a given lesson.
+      description: Retrieves and processes the transcript of a YouTube video for a given lesson ID. Generates a compelling "About Video" description.
+      tags:
+        - Lectures
+      parameters:
+        - in: path
+          name: lesson_id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the lesson for which the "About Video" description needs to be generated.
+      responses:
+        '200':
+          description: Successfully generated the "About Video" description.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The generated "About Video" description.
+                    example: "This video covers the key aspects of..."
+        '400':
+          description: Error in processing the video or fetching transcript.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Error extracting transcript: [details]'
+        '404':
+          description: Lesson not found or video URL not available.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating that the lesson or video URL was not found.
+                    example: "Lesson not found."
+        '500':
+          description: Internal server error occurred while generating the description.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating a server-side issue.
+                    example: "Error in generating about video - <error message>"
+  /api/transcript_notes/{lesson_id}:
+    parameters:
+      - name: lesson_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: ID of the lesson associated with the video.
+    get:
+      tags:
+        - Lectures
+      summary: Process YouTube Video Transcript
+      description: >-
+        Retrieves and processes the transcript of a YouTube video for a given
+        lesson ID. Generates notes and identifies important topics.
+      responses:
+        '200':
+          description: >-
+            Processed transcript details including video embed, transcript text,
+            notes, and important topics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  video_embed:
+                    type: string
+                    description: HTML code to embed the YouTube video.
+                    example: >-
+                      <iframe id="videoPlayer" width="560" height="315"
+                      src="https://www.youtube.com/embed/VIDEO_ID"
+                      frameborder="0" allow="accelerometer; autoplay;
+                      clipboard-write; encrypted-media; gyroscope;
+                      picture-in-picture" allowfullscreen></iframe>
+                  transcript_text:
+                    type: string
+                    description: Raw transcript text of the YouTube video.
+                    example: |-
+                      00:00 - 00:10: Welcome to the video...
+                      00:10 - 00:20: In this segment...
+                  notes:
+                    type: string
+                    description: HTML formatted notes generated from the transcript.
+                    example: <p>Important points from the video...</p>
+                  important_topics:
+                    type: string
+                    description: >-
+                      HTML formatted important topics extracted from the
+                      transcript.
+                    example: <h2>Topics discussed</h2><p>Topic 1, Topic 2...</p>
+        '400':
+          description: Error in processing the video or fetching transcript.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: 'Error extracting transcript: [details]'
+        '404':
+          description: Lesson or video URL not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Lesson not found.
+        '500':
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error occurred.
+  /api/weekly_performance_analysis:
+    post:
+      tags:
+        - Weekly Performance
+      summary: Retrieve Weekly Performance Analysis
+      description: >-
+        Analyzes and retrieves a student's performance for a specific week, including 
+        scores and a SWOT analysis report. Handles cases where data might be missing 
+        or errors occur during processing.
+      requestBody:
+        description: Data required to analyze and retrieve weekly performance.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  description: The ID of the student/user for whom the performance is analyzed.
+                  example: 123
+                week_no:
+                  type: integer
+                  description: The week number for which the performance analysis is to be done.
+                  example: 5
+              required:
+                - user_id
+                - week_no
+      responses:
+        '200':
+          description: Successfully retrieved the weekly performance analysis.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    description: The ID of the student/user.
+                  week_id:
+                    type: integer
+                    description: The ID of the week.
+                  performance:
+                    type: object
+                    properties:
+                      aq_score:
+                        type: integer
+                        description: Score for AQ type questions.
+                      pm_score:
+                        type: integer
+                        description: Score for PM type questions.
+                      pp_score:
+                        type: integer
+                        description: Score for PP type questions.
+                      gp_score:
+                        type: integer
+                        description: Score for GP type questions.
+                      gq_score:
+                        type: integer
+                        description: Score for GQ type questions.
+                      overall_ai_score:
+                        type: number
+                        format: float
+                        description: Overall AI score based on performance.
+                  swot_analysis:
+                    type: object
+                    description: SWOT analysis report for the student's performance.
+        '400':
+          description: Bad request due to missing or invalid parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the issue.
+                    example: "user_id and week_no are required fields"
+        '404':
+          description: Resource not found (e.g., user, week, questions, or student answers).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the issue.
+                    example: "User not found or No questions found for this week"
+        '500':
+          description: Internal server error during SWOT analysis generation or database operations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message detailing the problem encountered.
+                    example: "Failed to generate SWOT analysis - [error details]"
+  /api/compile:
+    post:
+      tags:
+        - Programming Questions
+      summary: Compile and Test Code
+      description: >-
+        Compiles the provided code, runs it against specified test cases, and
+        returns the results.
+      requestBody:
+        description: Data required to compile and test the code.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: The code to be compiled and executed.
+                  example: "def add(a, b): return a+b"
+                question_id:
+                  type: integer
+                  description: ID of the question being solved.
+                  example: 1
+              required:
+                - code
+                - question_id
+      responses:
+        '200':
+          description: Code compiled and tested successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        input:
+                          type: string
+                          description: The input provided for the test case.
+                          example: "[1,2]"
+                        expected_output:
+                          type: string
+                          description: The expected output for the test case.
+                          example: "3"
+                        actual_output:
+                          type: string
+                          description: The actual output from executing the code.
+                          example: "3"
+                        passed:
+                          type: boolean
+                          description: >-
+                            Indicates whether the actual output matches the
+                            expected output.
+                          example: true
+        '400':
+          description: Bad request, missing code or test cases.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Code is required
+        '500':
+          description: Internal server error, issues during code execution or testing.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Compilation error or execution failed
+  /api/submit:
+    post:
+      tags:
+        - Programming Questions
+      summary: Submit Code Solution
+      description: >-
+        Submits code for a question, tests it against private test cases, and
+        records the submission if all test cases pass. Retrieves the question from
+        the database based on the provided question ID, executes the code against
+        the private test cases, and handles any syntax or runtime errors.
+      requestBody:
+        description: Data required to submit and test the code.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: The code to be executed.
+                  example: "def add(a, b): return a+b"
+                user_id:
+                  type: integer
+                  description: ID of the user submitting the code.
+                  example: 1
+                question_id:
+                  type: integer
+                  description: ID of the question being solved.
+                  example: 1
+              required:
+                - code
+                - user_id
+                - question_id
+      responses:
+        '200':
+          description: Code submitted and tested successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  score:
+                    type: integer
+                    description: The score achieved based on passing test cases.
+                    example: 1
+                  message:
+                    type: string
+                    description: Message indicating the result of the submission.
+                    example: Code submitted successfully!
+        '500':
+          description: Internal server error, issues during code execution or saving submission.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message detailing the problem.
+                    example: Failed to save submission
+  /api/explainCode:
+    post:
+      tags:
+        - Programming Questions
+      summary: Get Hint for Code
+      description: >-
+        Provides a hint or suggestion for improving or debugging the provided
+        code based on the question and language.
+      requestBody:
+        description: Data required to generate a hint for the code.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: The code snippet for which the hint is required.
+                  example: "def add(a, b): return a+b"
+                language:
+                  type: string
+                  description: >-
+                    The programming language of the provided code (e.g., Python).
+                  example: "python"
+                question_id:
+                  type: integer
+                  description: The ID of the related question for context.
+                  example: 1
+              required:
+                - code
+                - language
+                - question_id
+      responses:
+        '200':
+          description: Hint successfully generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hint:
+                    type: string
+                    description: HTML content of the hint or suggestion.
+                    example: "<p>Ensure that you handle edge cases where inputs may not be integers.</p>"
+        '500':
+          description: Internal server error, issues during hint generation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message detailing the problem.
+                    example: "Failed to generate hint due to a model error."
+  /api/getEfficientCode:
+    post:
+      tags:
+        - Programming Questions
+      summary: Retrieve or Generate Efficient Code
+      description: >-
+        Retrieves the efficient code for a given question if available. If not
+        available, generates it using an AI model and stores it in the database.
+      requestBody:
+        description: Data required to retrieve or generate efficient code.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_id:
+                  type: integer
+                  description: >-
+                    The ID of the question for which the efficient code is
+                    needed
+                  example: 1 
+              required:
+                - question_id
+      responses:
+        '200':
+          description: Efficient code successfully retrieved or generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  efficient_code:
+                    type: string
+                    description: The efficient code for the given question.
+                    example: "def efficient_function(param): return param * 2"
+        '400':
+          description: Bad request, missing or invalid parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: >-
+                      Error message indicating the missing or invalid
+                      parameters.
+                      example: "question_id is required"
+        '404':
+          description: Question not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating that the question was not found.
+                    example: "Question not found"
+        '500':
+          description: >-
+            Internal server error, issues during code generation or database
+            operations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message detailing the problem encountered.
+                    example: "Error generating efficient code"
+  /api/chat:
+    post:
+      tags:
+        - Lectures
+      summary: Interact with AI ChatBot
+      description: Sends a message to the AI ChatBot and receives a response. Maintains conversation history via session ID.
+      requestBody:
+        description: JSON object containing the chat session ID and the user's message.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: integer
+                  description: Unique identifier for the chat session. If not provided, a new session is initiated.
+                  example: "1"
+                message:
+                  type: string
+                  description: The user's message to the AI.
+                  example: "Can you help me understand Python dictionaries?"
+              required:
+                - message
+      responses:
+        '200':
+          description: Success with the AI's response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: The AI's response to the user's message.
+                    example: "Sure! A Python dictionary is like a real-life dictionary, where you look up a word (key) and get its definition (value). ..."
+        '400':
+          description: Bad request due to missing message or session ID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating the problem.
+                    example:
+                      MissingMessage:
+                        value: "Message cannot be empty!"
+                      MissingKey:
+                        value: "Missing key: 'session_id'"
+        '500':
+          description: Internal server error during AI model interaction.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating server-side issues.
+                    example: "Internal Server Error"
+  /api/sentiment_analysis:
+    get:
+      tags:
+        - Lectures
+      summary: Perform Sentiment Analysis on Lesson Feedback
+      description: Retrieves all ratings from the database, organizes feedback by lesson, and generates a summary using sentiment analysis. Returns the summary as a JSON response.
+      responses:
+        '200':
+          description: Success with the feedback summary.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lecture_feedback_summaries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        lesson_id:
+                          type: string
+                          description: Unique identifier for the lecture.
+                        sentiment:
+                          type: number
+                          description: Sentiment score for the lecture feedback, ranging from 0 to 1.
+                        feedback_summary:
+                          type: string
+                          description: Summarized feedback provided by the AI for the lecture.
+                        suggestions:
+                          type: string
+                          description: AI-generated suggestions for improvement based on feedback.
+                      required:
+                        - lesson_id
+                        - sentiment
+                        - feedback_summary
+        '404':
+          description: No ratings found in the database.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating that no ratings were found.
+                    example: "No ratings found in the database"
+        '500':
+          description: Internal server error during database query or feedback summary generation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message indicating issues with database retrieval or summary generation.
+                    example: "Failed to generate feedback summary - <error message>"
+      
