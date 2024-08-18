@@ -15,14 +15,6 @@ def test_delete_user_user_not_found():
     response = requests.delete(f"{BASE_URL}/api/users/{user_id}")
     assert response.status_code == 404
 
-# def test_delete_user_successful():
-#     """
-#     Tests whether the code correctly deletes a user based on the ID
-#     """
-#     user_id = 1
-#     response = requests.delete(f"{BASE_URL}/api/users/{user_id}")
-#     assert response.status_code == 200
-
 def test_get_users_successful():
     """
     Tests whether the app correctly returns the list of users
