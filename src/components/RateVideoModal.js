@@ -17,7 +17,7 @@ import {
 import { StarIcon } from '@chakra-ui/icons';
 import axios from 'axios';
 
-const RateVideoModal = () => {
+const RateVideoModal = (lessonId) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [ratings, setRatings] = useState({
     audio: 0,
@@ -33,8 +33,8 @@ const RateVideoModal = () => {
   const handleSubmit = async () => {
     try {
       const response = await axios.post('http://127.0.0.1:5000/api/submit_rating', {
-        user_id: 1,  // Replace with actual user ID
-        lesson_id: 1,  // Replace with actual lesson ID
+        user_id: localStorage.getItem("user_Id"),  // Replace with actual user ID
+        lesson_id: lessonId,  // Replace with actual lesson ID
         audio: ratings.audio,
         video: ratings.video,
         content: ratings.content,
@@ -49,8 +49,15 @@ const RateVideoModal = () => {
 
   return (
     <>
-      <Button onClick={onOpen} color="teal.600" _hover={{ textDecoration: 'underline' }}>
-        Rate this Video
+      <Button colorScheme="teal" onClick={onOpen} boxShadow="md" _hover={{ boxShadow: "lg" }} size="md">
+        <Flex align="center">
+          <StarIcon
+            cursor="pointer"
+            onClick={() => handleRating('audio', ratings.audio > 0 ? 0 : 1)} // Toggle rating between 0 and 1
+            mr={2}
+          />
+          <Text>Rate this Video</Text>
+        </Flex>
       </Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
