@@ -126,7 +126,7 @@ const TranscriptModal = ({ lessonId }) => {
                       Transcript:
                     </Text>
                     <Box
-                      p={5}
+                      p={8}
                       borderRadius="md"
                       borderWidth="1px"
                       borderColor="gray.200"
@@ -151,7 +151,7 @@ const TranscriptModal = ({ lessonId }) => {
                     </Text>
                     <Box
                       dangerouslySetInnerHTML={{ __html: transcriptData.notes }}
-                      p={5}
+                      p={8}
                       borderRadius="md"
                       borderWidth="1px"
                       borderColor="gray.200"
@@ -171,7 +171,7 @@ const TranscriptModal = ({ lessonId }) => {
                     </Text>
                     <Box
                       dangerouslySetInnerHTML={{ __html: transcriptData.important_topics }}
-                      p={5}
+                      p={8}
                       borderRadius="md"
                       borderWidth="1px"
                       borderColor="gray.200"
