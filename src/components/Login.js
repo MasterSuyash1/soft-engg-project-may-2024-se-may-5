@@ -39,6 +39,8 @@ const Login = () => {
         if (response.data.is_admin) {
           navigate('/admin-dashboard');
         } else {
+          // console.log(response.data.user_Id);
+          localStorage.setItem('user_Id', response.data.user_Id);
           navigate('/dashboard');
         }
       }
