@@ -5,8 +5,9 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Dashboard from './components/Dashboard';
-import ProgrammingAssignment from './components/ProgrammingAssignment';
-import AdminDashboard from './components/AdminDashboard'; // Import the AdminDashboard component
+import AdminDashboard from './components/AdminDashboard';
+import PracticeMore from './components/PracticeMore';
+import WeeklyPerformance from './components/WeeklyPerformance';
 
 function App() {
   return (
@@ -17,8 +18,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/programming-assignment" element={<ProgrammingAssignment />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} /> {/* Add the AdminDashboard route */}
+          <Route path="/practice-more/:lessonId" element={<PracticeMore />} /> {/* Update the PracticeMore route */}
+          <Route path="/weekly-performance/:userId/:weekNo" element={<WeeklyPerformance />} />
         </Routes>
       </Router>
     </ChakraProvider>
