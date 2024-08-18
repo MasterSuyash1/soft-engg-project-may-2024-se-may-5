@@ -21,7 +21,6 @@ from google.generativeai import GenerationConfig
 import subprocess
 import logging
 import tempfile
-from api import run
 
 
 app = Flask(__name__)
