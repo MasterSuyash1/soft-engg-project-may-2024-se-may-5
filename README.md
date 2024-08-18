@@ -70,19 +70,14 @@ Follow these steps to set up and run the project.
 
 ### 2. Setting Up the Frontend
 
-1. **Open a New Terminal Tab**: Keep the backend running, and in a new terminal tab, navigate to the parent directory.
 
-    ```bash
-    cd ..
-    ```
-
-2. **Setup the Project**: Install the necessary Node.js packages.
+1. **Setup the Project**: Keep the backend running, and in a new terminal tab, Install the necessary Node.js packages.
 
     ```bash
     npm install
     ```
 
-3. **Compile the Frontend**: Start the frontend server.
+2. **Compile the Frontend**: Start the frontend server.
 
     ```bash
     npm start
